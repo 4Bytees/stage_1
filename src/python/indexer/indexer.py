@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 import sys
 
-# Subimos a la carpeta src/python (3 niveles: file -> indexer -> python)
 PYTHON_ROOT = Path(__file__).resolve().parent.parent
 if str(PYTHON_ROOT) not in sys.path:
   sys.path.insert(0, str(PYTHON_ROOT))
@@ -13,7 +12,6 @@ from indexer.containers.monolitic_indexer import MonoliticIndexer
 
 
 def find_body_file(book_id: int) -> Path | None:
-  """Busca el archivo de cuerpo del libro en el Datalake."""
   target_files = [f"{book_id}_body.txt", f"{book_id}.body.txt"]
   if DATALAKE_DIR.exists():
     for root, _, files in os.walk(DATALAKE_DIR):
@@ -24,7 +22,6 @@ def find_body_file(book_id: int) -> Path | None:
 
 
 def process_single_indexing(book_id: int) -> bool:
-  """Función de entrada limpia invocable desde la Control Layer o Main."""
   body_path = find_body_file(book_id)
   if not body_path or not body_path.exists():
     print(f"[INDEXER] Archivo _body.txt para libro {book_id} no encontrado.")

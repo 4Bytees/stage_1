@@ -1,0 +1,16 @@
+# Archivos temporales
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+
+# Excluir datos pesados de Git
+datalake/*
+!datalake/.gitkeep
+datamarts/*
+!datamarts/.gitkeep
+
+# Bases de datos locales
+*.db
+*.sqlite

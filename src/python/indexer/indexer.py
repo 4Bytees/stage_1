@@ -9,6 +9,7 @@ if str(PYTHON_ROOT) not in sys.path:
 from indexer.base_container import DATALAKE_DIR
 from indexer.containers.hierarchical_indexer import HierarchicalFolderStructure
 from indexer.containers.monolitic_indexer import MonoliticIndexer
+from indexer.containers.sqlite_indexer import SqliteIndexer
 
 
 def find_body_file(book_id: int) -> Path | None:
@@ -32,13 +33,15 @@ def process_single_indexing(book_id: int) -> bool:
 
     monolithic = MonoliticIndexer()
     hierarchical = HierarchicalFolderStructure()
+    sqlite_idx = SqliteIndexer()
 
     position_dict = monolithic.tokenize(text)
 
     monolithic.save_index_for_book(book_id, position_dict)
     hierarchical.save_index_for_book(book_id, position_dict)
+    sqlite_idx.save_index_for_book(book_id, position_dict)
 
-    print(f"[INDEXER] Libro ID {book_id} indexado exitosamente.")
+    print(f"[INDEXER] Libro ID {book_id} indexado con éxito en los 3 datamarts.")
     return True
   except Exception as e:
     print(f"[INDEXER ERROR] Fallo al indexar libro {book_id}: {e}")

@@ -14,3 +14,7 @@ datamarts/*
 # Bases de datos locales
 *.db
 *.sqlite
+
+# Compilados de Java
+bin/
+*.class

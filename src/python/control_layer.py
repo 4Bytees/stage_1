@@ -1,80 +1,68 @@
-import os
 import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# Definición unificada de la raíz del proyecto
+BASE_DIR = Path(__file__).resolve().parents[2]
+if str(BASE_DIR / "src" / "python") not in sys.path:
+    sys.path.append(str(BASE_DIR / "src" / "python"))
+
 CONTROL_DIR = BASE_DIR / "control"
-DOWNLOADS_FILE = CONTROL_DIR / "downloaded_books.txt"
-INDEXED_FILE = CONTROL_DIR / "indexed_books.txt"
+DOWNLOADED_BOOKS_FILE = CONTROL_DIR / "downloaded_books.txt"
+INDEXED_BOOKS_FILE = CONTROL_DIR / "indexed_books.txt"
 
-PYTHON_SRC_DIR = Path(__file__).resolve().parent
-if str(PYTHON_SRC_DIR) not in sys.path:
-    sys.path.append(str(PYTHON_SRC_DIR))
+CONTROL_DIR.mkdir(parents=True, exist_ok=True)
 
-from crawler_controller import CrawlerController
-from metadata.metadata_parser import process_single_metadata
-from indexer.indexer import process_single_indexing
+class ControlLayer:
+    def __init__(self, crawler=None, metadata_service=None, indexer_service=None):
+        self.crawler = crawler
+        self.metadata_service = metadata_service
+        self.indexer_service = indexer_service
 
-RANGE_START = 1
-RANGE_END = 15
+    def get_processed_ids(self, file_path: Path) -> set:
+        """Lee un archivo de control y devuelve el conjunto de IDs procesados."""
+        if not file_path.exists():
+            return set()
+        with open(file_path, "r", encoding="utf-8") as f:
+            return {line.strip() for line in f if line.strip()}
 
-def init_control_layer():
-    CONTROL_DIR.mkdir(parents=True, exist_ok=True)
-    if not DOWNLOADS_FILE.exists():
-        DOWNLOADS_FILE.touch()
-    if not INDEXED_FILE.exists():
-        INDEXED_FILE.touch()
+    def mark_as_processed(self, file_path: Path, book_id: str):
+        """Añade de forma idempotente un ID al archivo de control correspondiente."""
+        processed = self.get_processed_ids(file_path)
+        if str(book_id) not in processed:
+            with open(file_path, "a", encoding="utf-8") as f:
+                f.write(f"{book_id}\n")
 
-def read_ids(file_path: Path) -> set[int]:
-    if not file_path.exists():
-        return set()
-    with open(file_path, "r", encoding="utf-8") as f:
-        return {int(line.strip()) for line in f if line.strip().isdigit()}
+    def run_pipeline(self, book_ids: list):
+        """
+        Ejecuta el pipeline real secuencialmente:
+        Crawler -> Metadata Extraction -> Inverted Indexing
+        """
+        downloaded = self.get_processed_ids(DOWNLOADED_BOOKS_FILE)
+        indexed = self.get_processed_ids(INDEXED_BOOKS_FILE)
 
-def append_id(file_path: Path, book_id: int):
-    with open(file_path, "a", encoding="utf-8") as f:
-        f.write(f"{book_id}\n")
+        for book_id in book_ids:
+            book_id_str = str(book_id)
 
-def real_download_book(book_id: int) -> bool:
-    datalake_path = BASE_DIR / "datalake" / "time"
-    crawler = CrawlerController(
-        datalake_path=datalake_path,
-        logs_path=CONTROL_DIR,
-        total_books=book_id,
-        datalake_structure="date"
-    )
-    return crawler._fetch_and_save_book(book_id)
-
-def run_pipeline_step():
-    init_control_layer()
-    downloaded = read_ids(DOWNLOADS_FILE)
-    indexed = read_ids(INDEXED_FILE)
-
-    pending_to_index = downloaded - indexed
-    if pending_to_index:
-        book_id = sorted(list(pending_to_index))[0]
-        print(f"[CONTROL] Procesando libro pendiente ID {book_id}...")
-        
-        process_single_metadata(book_id)
-        if process_single_indexing(book_id):
-            append_id(INDEXED_FILE, book_id)
-            print(f"[CONTROL] Libro ID {book_id} indexado y registrado exitosamente.")
-        return True
-
-    for candidate_id in range(RANGE_START, RANGE_END + 1):
-        if candidate_id not in downloaded:
-            print(f"[CONTROL] Descargando nuevo candidato ID {candidate_id}...")
-            if real_download_book(candidate_id):
-                append_id(DOWNLOADS_FILE, candidate_id)
-                print(f"[CONTROL] Libro ID {candidate_id} descargado y registrado.")
-                return True
+            # Etapa 1: Descarga e Ingesta en Datalake
+            if book_id_str not in downloaded:
+                print(f"[CONTROL] Descargando libro ID: {book_id_str}...")
+                if self.crawler:
+                    success = self.crawler.download_and_store(book_id_str)
+                    if success:
+                        self.mark_as_processed(DOWNLOADED_BOOKS_FILE, book_id_str)
             else:
-                print(f"[CONTROL] Descarga fallida para libro ID {candidate_id}.")
-                return False
+                print(f"[CONTROL] Libro ID: {book_id_str} ya existe en Datalake.")
 
-    print("[CONTROL] Todos los libros objetivo han sido procesados.")
-    return False
+            # Etapa 2: Extracción de Metadatos a SQLite
+            if self.metadata_service:
+                print(f"[CONTROL] Procesando metadatos para ID: {book_id_str}...")
+                self.metadata_service.process_book(book_id_str)
 
-if __name__ == "__main__":
-    print("--- Starting Connected Control Layer ---")
-    run_pipeline_step()
+            # Etapa 3: Indexación en Índice Invertido
+            if book_id_str not in indexed:
+                if self.indexer_service:
+                    print(f"[CONTROL] Indexando cuerpo de libro ID: {book_id_str}...")
+                    self.indexer_service.index_book(book_id_str)
+                    self.mark_as_processed(INDEXED_BOOKS_FILE, book_id_str)
+            else:
+                print(f"[CONTROL] Libro ID: {book_id_str} ya está indexado. Omitiendo.")

@@ -22,3 +22,8 @@ bin/
 # Compilados de C
 *.exe
 *.o
+
+# Binarios y compilados
+bin/
+*.exe
+*.o

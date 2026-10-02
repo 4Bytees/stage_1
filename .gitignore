@@ -18,3 +18,7 @@ datamarts/*
 # Compilados de Java
 bin/
 *.class
+
+# Compilados de C
+*.exe
+*.o

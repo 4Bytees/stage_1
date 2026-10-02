@@ -12,7 +12,6 @@ public abstract class BaseContainer {
     public static final Path DATALAKE_DIR = BASE_DIR.resolve("datalake");
     public static final Path SAMPLE_DATA_DIR = BASE_DIR.resolve("sample_data");
 
-    // Mismo conjunto exacto de Stop Words utilizado en la versión de Python
     protected static final Set<String> STOP_WORDS = Set.of(
         "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
         "if", "in", "into", "is", "it", "no", "not", "of", "on", "or",

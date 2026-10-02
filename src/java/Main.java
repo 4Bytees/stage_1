@@ -1,10 +1,11 @@
 import indexer.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("--- Starting Java Inverted Indexing Process ---");
+        System.out.println("--- Starting Dynamic Java Inverted Indexing Process ---");
 
         Path sampleDir = Paths.get("sample_data");
         if (!Files.exists(sampleDir)) {
@@ -16,14 +17,29 @@ public class Main {
         HierarchicalIndexer hierarchical = new HierarchicalIndexer();
         TsvIndexer tsvIndexer = new TsvIndexer();
 
-        int[] bookIds = {6, 7, 8, 9, 10};
+        Pattern pattern = Pattern.compile("^(\\d+)_body\\.txt$");
+        List<Path> files = new ArrayList<>();
 
-        for (int bookId : bookIds) {
-            Path bodyFile = sampleDir.resolve(bookId + "_body.txt");
-            if (!Files.exists(bodyFile)) {
-                System.out.println("[JAVA] Libro " + bookId + "_body.txt no encontrado en sample_data.");
-                continue;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(sampleDir, "*_body.txt")) {
+            for (Path entry : stream) {
+                files.add(entry);
             }
+        } catch (Exception e) {
+            System.err.println("[JAVA ERROR] Error listando sample_data: " + e.getMessage());
+            return;
+        }
+
+        files.sort(Comparator.comparingInt(p -> {
+            Matcher m = pattern.matcher(p.getFileName().toString());
+            return m.find() ? Integer.valueOf(m.group(1)) : 0;
+        }));
+
+        System.out.println("[JAVA] Total de libros detectados para indexar: " + files.size());
+
+        for (Path bodyFile : files) {
+            Matcher matcher = pattern.matcher(bodyFile.getFileName().toString());
+            if (!matcher.find()) continue;
+            int bookId = Integer.parseInt(matcher.group(1));
 
             try {
                 long startTime = System.currentTimeMillis();
@@ -35,7 +51,7 @@ public class Main {
                 tsvIndexer.saveIndexForBook(bookId, positionDict);
 
                 long duration = System.currentTimeMillis() - startTime;
-                System.out.println("[JAVA] Libro ID " + bookId + " indexado en las 3 estructuras en " + duration + " ms.");
+                System.out.println("[JAVA] Libro ID " + bookId + " indexado en " + duration + " ms.");
             } catch (Exception e) {
                 System.err.println("[JAVA ERROR] Fallo al procesar libro " + bookId + ": " + e.getMessage());
             }

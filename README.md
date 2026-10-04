@@ -39,6 +39,8 @@ stage_1/
 ├── sample_data/                    # Sample books (<id>_body.txt)
 ├── benchmarks/
 │   └── benchmark_results.json      # Output of the benchmark script
+│   └── benchmark_datalake.py       # Script to measure read/write latency and storage overhead across Datalake partitioning schemes
+│   └── run_benchmarks.py           # Main execution runner that orchestrates and executes all benchmark tests across languages and index formats
 └── README.md
 ```
 

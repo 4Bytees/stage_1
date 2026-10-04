@@ -1,1 +1,7 @@
 timestamp,language,component,strategy_variant,num_books,execution_time_sec,memory_mb
+2026-10-04 01:04:31,C,Indexer,Triple Storage (JSON/Folders/TSV),25,134.9287,94.4
+2026-10-04 01:06:52,Java,Indexer,Triple Storage (JSON/Folders/TSV),25,141.3766,1046.68
+2026-10-04 01:06:53,Python,Indexer,Triple Storage,25,0.7413,29.01
+2026-10-04 01:16:13,C,Indexer,Triple Storage (JSON/Folders/TSV),25,166.9131,94.4
+2026-10-04 01:19:09,Java,Indexer,Triple Storage (JSON/Folders/TSV),25,176.179,979.81
+2026-10-04 01:19:09,Python,Indexer,Triple Storage,25,0.4362,29.07

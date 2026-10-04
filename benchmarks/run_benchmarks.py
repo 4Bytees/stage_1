@@ -1,6 +1,6 @@
 import time
 import csv
-import sys
+import subprocess
 import psutil
 from pathlib import Path
 
@@ -26,30 +26,66 @@ class BenchmarkRunner:
                     "execution_time_sec", "memory_mb"
                 ])
 
-    def measure(self, language: str, component: str, variant: str, num_books: int, func, *args, **kwargs):
-        """Mide tiempo de ejecución y consumo de memoria RAM."""
-        process = psutil.Process()
-        mem_before = process.memory_info().rss / (1024 * 1024)
+    def run_command(self, language: str, component: str, variant: str, num_books: int, command: list):
+        """Ejecuta un comando del sistema midiendo tiempo y memoria consumida."""
+        print(f"\n[BENCHMARK START] Ejecutando {language} ({variant})...")
         
         start_time = time.perf_counter()
-        result = func(*args, **kwargs)
+        
+        # Iniciar el proceso hijo
+        process = subprocess.Popen(command, cwd=BASE_DIR, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        max_mem_mb = 0.0
+        try:
+            ps_proc = psutil.Process(process.pid)
+            while process.poll() is None:
+                try:
+                    mem_info = ps_proc.memory_info().rss / (1024 * 1024)
+                    if mem_info > max_mem_mb:
+                        max_mem_mb = mem_info
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+                time.sleep(0.05)
+        except Exception as e:
+            print(f"[WARNING] No se pudo monitorear memoria continua: {e}")
+
+        process.communicate()
         end_time = time.perf_counter()
 
-        mem_after = process.memory_info().rss / (1024 * 1024)
         execution_time = round(end_time - start_time, 4)
-        mem_used = round(max(0, mem_after - mem_before), 2)
+        max_mem_mb = round(max_mem_mb, 2)
 
         with open(self.output_csv, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow([
                 time.strftime("%Y-%m-%d %H:%M:%S"),
                 language, component, variant, num_books,
-                execution_time, mem_used
+                execution_time, max_mem_mb
             ])
 
-        print(f"[BENCHMARK] {component} ({variant}) | Libros: {num_books} | Tiempo: {execution_time}s | RAM: {mem_used}MB")
-        return result
+        print(f"[BENCHMARK COMPLETED] {language} ({variant}) | Libros: {num_books} | Tiempo: {execution_time}s | RAM Máx: {max_mem_mb}MB")
 
 if __name__ == "__main__":
     runner = BenchmarkRunner()
-    print("Módulo de Benchmarks preparado en benchmarks/metrics.csv")
+    num_books = 25
+
+    # 1. Benchmark C
+    c_exe = BASE_DIR / "main_c.exe"
+    if not c_exe.exists():
+        print("[BUILD] Compilando C...")
+        subprocess.run(["gcc", "src/C/main.c", "-o", "main_c.exe"], cwd=BASE_DIR, check=True)
+    runner.run_command("C", "Indexer", "Triple Storage (JSON/Folders/TSV)", num_books, [str(c_exe)])
+
+    # 2. Benchmark Java
+    bin_dir = BASE_DIR / "bin"
+    if not (bin_dir / "Main.class").exists():
+        print("[BUILD] Compilando Java...")
+        subprocess.run(["javac", "-d", "bin", "src/java/Main.java", "src/java/indexer/InvertedIndexer.java"], cwd=BASE_DIR, check=True)
+    runner.run_command("Java", "Indexer", "Triple Storage (JSON/Folders/TSV)", num_books, ["java", "-cp", "bin", "Main"])
+
+    # 3. Benchmark Python (si existe un script de indexación en src/python/)
+    py_indexer = BASE_DIR / "src" / "python" / "main.py"
+    if py_indexer.exists():
+        runner.run_command("Python", "Indexer", "Triple Storage", num_books, ["python", str(py_indexer)])
+
+    print("\n[SUCCESS] Benchmarking finalizado con éxito. Datos guardados en benchmarks/metrics.csv")

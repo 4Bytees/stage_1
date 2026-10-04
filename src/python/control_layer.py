@@ -1,68 +1,65 @@
-import sys
-from pathlib import Path
-
-# Definición unificada de la raíz del proyecto
-BASE_DIR = Path(__file__).resolve().parents[2]
-if str(BASE_DIR / "src" / "python") not in sys.path:
-    sys.path.append(str(BASE_DIR / "src" / "python"))
-
-CONTROL_DIR = BASE_DIR / "control"
-DOWNLOADED_BOOKS_FILE = CONTROL_DIR / "downloaded_books.txt"
-INDEXED_BOOKS_FILE = CONTROL_DIR / "indexed_books.txt"
-
-CONTROL_DIR.mkdir(parents=True, exist_ok=True)
+import os
 
 class ControlLayer:
-    def __init__(self, crawler=None, metadata_service=None, indexer_service=None):
+    def __init__(self, crawler, metadata_service, indexer_service, control_dir="control"):
         self.crawler = crawler
         self.metadata_service = metadata_service
         self.indexer_service = indexer_service
+        self.control_dir = control_dir
+        
+        self.downloaded_file = os.path.join(control_dir, "downloaded_books.txt")
+        self.indexed_file = os.path.join(control_dir, "indexed_books.txt")
+        
+        os.makedirs(self.control_dir, exist_ok=True)
+        self.downloaded_ids = self._load_ids(self.downloaded_file)
+        self.indexed_ids = self._load_ids(self.indexed_file)
 
-    def get_processed_ids(self, file_path: Path) -> set:
-        """Lee un archivo de control y devuelve el conjunto de IDs procesados."""
-        if not file_path.exists():
+    def _load_ids(self, filepath):
+        if not os.path.exists(filepath):
             return set()
-        with open(file_path, "r", encoding="utf-8") as f:
-            return {line.strip() for line in f if line.strip()}
+        with open(filepath, "r", encoding="utf-8") as f:
+            return set(line.strip() for line in f if line.strip())
 
-    def mark_as_processed(self, file_path: Path, book_id: str):
-        """Añade de forma idempotente un ID al archivo de control correspondiente."""
-        processed = self.get_processed_ids(file_path)
-        if str(book_id) not in processed:
-            with open(file_path, "a", encoding="utf-8") as f:
-                f.write(f"{book_id}\n")
+    def _mark_as_done(self, filepath, book_id, id_set):
+        with open(filepath, "a", encoding="utf-8") as f:
+            f.write(f"{book_id}\n")
+        id_set.add(str(book_id))
 
-    def run_pipeline(self, book_ids: list):
-        """
-        Ejecuta el pipeline real secuencialmente:
-        Crawler -> Metadata Extraction -> Inverted Indexing
-        """
-        downloaded = self.get_processed_ids(DOWNLOADED_BOOKS_FILE)
-        indexed = self.get_processed_ids(INDEXED_BOOKS_FILE)
+    def process_book(self, book_id):
+        book_id_str = str(book_id)
+        book_id_int = int(book_id)
 
-        for book_id in book_ids:
-            book_id_str = str(book_id)
+        # 1. Descargar si no está en la lista de descargados
+        if book_id_str not in self.downloaded_ids:
+            try:
+                # Enviamos el ID como entero tal como lo requiere CrawlerController
+                success = self.crawler.download(book_id_int)
+            except Exception as e:
+                if hasattr(self.crawler, "_crawl_book"):
+                    success = self.crawler._crawl_book(book_id_int)
+                elif hasattr(self.crawler, "download_and_store"):
+                    success = self.crawler.download_and_store(book_id_int)
+                else:
+                    raise e
 
-            # Etapa 1: Descarga e Ingesta en Datalake
-            if book_id_str not in downloaded:
-                print(f"[CONTROL] Descargando libro ID: {book_id_str}...")
-                if self.crawler:
-                    success = self.crawler.download_and_store(book_id_str)
-                    if success:
-                        self.mark_as_processed(DOWNLOADED_BOOKS_FILE, book_id_str)
+            if success or success is None:
+                self._mark_as_done(self.downloaded_file, book_id_str, self.downloaded_ids)
             else:
-                print(f"[CONTROL] Libro ID: {book_id_str} ya existe en Datalake.")
+                print(f"[Error] No se pudo descargar el libro {book_id_str}")
+                return
 
-            # Etapa 2: Extracción de Metadatos a SQLite
-            if self.metadata_service:
-                print(f"[CONTROL] Procesando metadatos para ID: {book_id_str}...")
-                self.metadata_service.process_book(book_id_str)
+        # 2. Procesar metadatos e indexación
+        if book_id_str not in self.indexed_ids:
+            # Comprobar método de metadatos
+            if hasattr(self.metadata_service, 'process_single_metadata'):
+                self.metadata_service.process_single_metadata(book_id_str)
+            elif hasattr(self.metadata_service, 'metadata_parser'):
+                self.metadata_service.metadata_parser(book_id_str)
 
-            # Etapa 3: Indexación en Índice Invertido
-            if book_id_str not in indexed:
-                if self.indexer_service:
-                    print(f"[CONTROL] Indexando cuerpo de libro ID: {book_id_str}...")
-                    self.indexer_service.index_book(book_id_str)
-                    self.mark_as_processed(INDEXED_BOOKS_FILE, book_id_str)
-            else:
-                print(f"[CONTROL] Libro ID: {book_id_str} ya está indexado. Omitiendo.")
+            # Comprobar método del indexador
+            if hasattr(self.indexer_service, 'process_single_indexing'):
+                self.indexer_service.process_single_indexing(book_id_str)
+            elif hasattr(self.indexer_service, 'index_book'):
+                self.indexer_service.index_book(book_id_str)
+
+            self._mark_as_done(self.indexed_file, book_id_str, self.indexed_ids)

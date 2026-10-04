@@ -16,9 +16,12 @@
 #define HASH_SIZE 65536
 
 static const char *STOP_WORDS[] = {
+    //stopwords inglés
     "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
     "if", "in", "into", "is", "it", "no", "not", "of", "on", "or",
-    "such", "that", "the", "their", "then", "there", "these", "they", "this", "to",
+    "such", "that", "the", "their", "then", "there", "these", "they", "this", "to", "with", "from",
+    //stopwords español
+    "el", "la", "los", "las", "un", "una", "unos", "unas", "y", "o", "que", "de", "del", "en", "con", "por", "para", "su", "sus",
     NULL
 };
 

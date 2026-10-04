@@ -1,20 +1,55 @@
 import sys
-from pathlib import Path
+import os
+
+# Añadir la carpeta raíz de Python al sys.path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import metadata.metadata_parser as metadata_module
+import indexer.indexer as indexer_module
 from crawler_controller import CrawlerController
+from control_layer import ControlLayer
+
+def main():
+    print("=== Iniciando Pipeline de Procesamiento de Libros ===")
+    
+    # Definir rutas base para Datalake y Logs/Control
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    datalake_path = os.path.join(base_dir, "datalake")
+    logs_path = os.path.join(base_dir, "control")
+    
+    os.makedirs(datalake_path, exist_ok=True)
+    os.makedirs(logs_path, exist_ok=True)
+    
+    # Instanciar el Crawler pasando los dos argumentos requeridos
+    crawler = CrawlerController(datalake_path=datalake_path, logs_path=logs_path)
+    
+    # Instanciar o referenciar el módulo de metadatos
+    if hasattr(metadata_module, 'MetadataParser'):
+        metadata_service = metadata_module.MetadataParser()
+    elif hasattr(metadata_module, 'MetadataService'):
+        metadata_service = metadata_module.MetadataService()
+    else:
+        metadata_service = metadata_module
+    
+    # Instanciar o referenciar el módulo de indexación
+    if hasattr(indexer_module, 'Indexer'):
+        indexer_service = indexer_module.Indexer()
+    elif hasattr(indexer_module, 'IndexerService'):
+        indexer_service = indexer_module.IndexerService()
+    else:
+        indexer_service = indexer_module
+
+    # Instanciar la capa de control
+    control = ControlLayer(crawler, metadata_service, indexer_service)
+    
+    # Procesar libros de prueba (del 6 al 30)
+    target_books = range(6, 31)
+    
+    for b_id in target_books:
+        print(f"\n--- Procesando Libro ID: {b_id} ---")
+        control.process_book(b_id)
+
+    print("\n=== Procesamiento completado ===")
 
 if __name__ == "__main__":
-    # Si no se pasan argumentos por consola, asigna las rutas estándar del proyecto
-    datalake_path = sys.argv[1] if len(sys.argv) > 1 else "../../datalake"
-    logs_output_path = sys.argv[2] if len(sys.argv) > 2 else "../../control"
-    
-    # Cantidad de libros a descargar en esta prueba (ej. 5 libros)
-    books_to_process = int(sys.argv[3]) if len(sys.argv) > 3 else 5
-
-    print("--- Starting the Crawler / Data Lake Ingestion ---")
-    crawler = CrawlerController(
-        datalake_path=datalake_path, 
-        logs_path=logs_output_path, 
-        total_books=100, 
-        datalake_structure="date"
-    )
-    crawler.download(books_to_process)
+    main()

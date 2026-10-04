@@ -15,10 +15,11 @@ public abstract class BaseContainer {
     protected static final Set<String> STOP_WORDS = Set.of(
         "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
         "if", "in", "into", "is", "it", "no", "not", "of", "on", "or",
-        "such", "that", "the", "their", "then", "there", "these", "they", "this", "to"
+        "such", "that", "the", "their", "then", "there", "these", "they", "this", "to", "with", "from",
+        "el", "la", "los", "las", "un", "una", "unos", "unas", "y", "o", "que", "de", "del", "en", "con", "por", "para", "su", "sus"
     );
 
-    private static final Pattern WORD_PATTERN = Pattern.compile("\\b[a-z]{3,}\\b");
+    private static final Pattern WORD_PATTERN = Pattern.compile("\\b[\\p{L}]{3,}\\b");
 
     public Map<String, List<Integer>> tokenize(String text) {
         Map<String, List<Integer>> positionDict = new HashMap<>();

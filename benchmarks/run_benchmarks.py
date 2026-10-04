@@ -6,7 +6,7 @@ import sqlite3
 import subprocess
 from pathlib import Path
 
-# Configuración de rutas relativas a la raíz del proyecto
+# Configuring paths relative to the project root
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATAMARTS_DIR = BASE_DIR / "datamarts"
 DATALAKE_DIR = BASE_DIR / "datalake"
@@ -14,11 +14,11 @@ SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
 BENCHMARKS_DIR = BASE_DIR / "benchmarks"
 BIN_DIR = BASE_DIR / "bin"
 
-# Términos de prueba para medir latencia de consulta
+# Test criteria for measuring query latency
 TEST_TERMS = ["gutenberg", "project", "electronic", "foundation", "states", "united", "life", "time"]
 
 def get_dir_size_bytes(path: Path) -> int:
-    """Calcula el tamaño total en bytes de un archivo o carpeta recursivamente."""
+    """Calculates the total size in bytes of a file or folder recursively."""
     if not path.exists():
         return 0
     if path.is_file():
@@ -26,56 +26,56 @@ def get_dir_size_bytes(path: Path) -> int:
     return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
 
 # -------------------------------------------------------------
-# 1. BENCHMARK: VELOCIDAD Y THROUGHPUT DE INDEXACIÓN
+# 1. BENCHMARK: INDEXING SPEED AND THROUGHPUT
 # -------------------------------------------------------------
 def benchmark_indexing_speed():
     print("\n" + "="*70)
-    print(" 1. BENCHMARK: TIEMPO DE INDEXACIÓN POR LENGUAJE")
+    print(" 1. BENCHMARK: INDEXING TIME BY LANGUAGE")
     print("="*70)
 
     results = {}
     py_exec = sys.executable
 
     # A) Python
-    print(" -> [1/3] Ejecutando indexador de Python (procesando libros)...", end="", flush=True)
+    print(" -> [1/3] Running Python indexer (processing books)...", end="", flush=True)
     py_script = BASE_DIR / "src" / "python" / "indexer" / "indexer.py"
     if py_script.exists():
         start = time.perf_counter()
         subprocess.run([py_exec, str(py_script)], capture_output=True, text=True, cwd=str(BASE_DIR))
         py_duration = (time.perf_counter() - start) * 1000
         results["Python"] = round(py_duration, 2)
-        print(f" Listo ({results['Python']:.0f} ms)")
+        print(f" Done ({results['Python']:.0f} ms)")
     else:
         results["Python"] = None
-        print(" Omitido (no encontrado)")
+        print(" Skipped (not found)")
 
     # B) Java
-    print(" -> [2/3] Ejecutando indexador de Java...", end="", flush=True)
+    print(" -> [2/3] Running Java indexer...", end="", flush=True)
     java_bin = BIN_DIR / "Main.class"
     if java_bin.exists():
         start = time.perf_counter()
         subprocess.run(["java", "-cp", "bin", "Main"], capture_output=True, text=True, cwd=str(BASE_DIR))
         java_duration = (time.perf_counter() - start) * 1000
         results["Java"] = round(java_duration, 2)
-        print(f" Listo ({results['Java']:.0f} ms)")
+        print(f" Done ({results['Java']:.0f} ms)")
     else:
         results["Java"] = None
-        print(" Omitido (bin/Main.class no compilado)")
+        print(" Skipped (bin/Main.class not compiled)")
 
     # C) C
-    print(" -> [3/3] Ejecutando indexador de C...", end="", flush=True)
+    print(" -> [3/3] Running C indexer...", end="", flush=True)
     c_bin = BIN_DIR / "indexer_c.exe"
     if c_bin.exists():
         start = time.perf_counter()
         subprocess.run([str(c_bin)], capture_output=True, text=True, cwd=str(BASE_DIR))
         c_duration = (time.perf_counter() - start) * 1000
         results["C"] = round(c_duration, 2)
-        print(f" Listo ({results['C']:.0f} ms)")
+        print(f" Done ({results['C']:.0f} ms)")
     else:
         results["C"] = None
-        print(" Omitido (bin/indexer_c.exe no compilado)")
+        print(" Skipped (bin/indexer_c.exe not compiled)")
 
-    print("\n" + f"{'Lenguaje':<15} | {'Tiempo Total (ms)':>18} | {'Speedup relativo':>18}")
+    print("\n" + f"{'Language':<15} | {'Total Time (ms)':>18} | {'Relative Speedup':>18}")
     print("-" * 57)
     base_time = results.get("Python") or 1.0
     for lang, duration in results.items():
@@ -83,32 +83,32 @@ def benchmark_indexing_speed():
             speedup = f"{base_time / max(duration, 0.01):.2f}x"
             print(f"{lang:<15} | {duration:>18.2f} | {speedup:>18}")
         else:
-            print(f"{lang:<15} | {'No compilado':>18} | {'N/A':>18}")
+            print(f"{lang:<15} | {'Not compiled':>18} | {'N/A':>18}")
 
     return results
 
 # -------------------------------------------------------------
-# 2. BENCHMARK: HUELLA EN DISCO (STORAGE FOOTPRINT)
+# 2. BENCHMARK: STORAGE FOOTPRINT
 # -------------------------------------------------------------
 def benchmark_storage_footprint():
     print("\n" + "="*70)
-    print(" 2. BENCHMARK: HUELLA EN DISCO (STORAGE FOOTPRINT)")
+    print(" 2. BENCHMARK: STORAGE FOOTPRINT")
     print("="*70)
 
     structures = {
-        "Python Monolítico (JSON)": DATAMARTS_DIR / "inverted_index.json",
-        "Python Jerárquico (Carpetas)": DATAMARTS_DIR / "inverted_index_folders",
-        "Python Relacional (SQLite)": DATAMARTS_DIR / "inverted_index.db",
-        "Java Monolítico (JSON)": DATAMARTS_DIR / "inverted_index_java.json",
-        "Java Jerárquico (Carpetas)": DATAMARTS_DIR / "inverted_index_folders_java",
+        "Python Monolithic (JSON)": DATAMARTS_DIR / "inverted_index.json",
+        "Python Hierarchical (Folders)": DATAMARTS_DIR / "inverted_index_folders",
+        "Python Relational (SQLite)": DATAMARTS_DIR / "inverted_index.db",
+        "Java Monolithic (JSON)": DATAMARTS_DIR / "inverted_index_java.json",
+        "Java Hierarchical (Folders)": DATAMARTS_DIR / "inverted_index_folders_java",
         "Java Tabular (TSV)": DATAMARTS_DIR / "inverted_index_java.tsv",
-        "C Monolítico (JSON)": DATAMARTS_DIR / "inverted_index_c.json",
-        "C Jerárquico (Carpetas)": DATAMARTS_DIR / "inverted_index_folders_c",
+        "C Monolithic (JSON)": DATAMARTS_DIR / "inverted_index_c.json",
+        "C Hierarchical (Folders)": DATAMARTS_DIR / "inverted_index_folders_c",
         "C Tabular (TSV)": DATAMARTS_DIR / "inverted_index_c.tsv",
     }
 
     results = {}
-    print(f"{'Estructura / Datamart':<35} | {'Tamaño (KB)':>14} | {'Tamaño (MB)':>14}")
+    print(f"{'Structure / Datamart':<35} | {'Size (KB)':>14} | {'Size (MB)':>14}")
     print("-" * 69)
     for name, path in structures.items():
         size_bytes = get_dir_size_bytes(path)
@@ -120,17 +120,17 @@ def benchmark_storage_footprint():
     return results
 
 # -------------------------------------------------------------
-# 3. BENCHMARK: LATENCIA DE CONSULTA (QUERY LATENCY)
+# 3. BENCHMARK: QUERY LATENCY
 # -------------------------------------------------------------
 def benchmark_query_latency():
     print("\n" + "="*70)
-    print(" 3. BENCHMARK: LATENCIA DE CONSULTA (QUERY LATENCY)")
+    print(" 3. BENCHMARK: QUERY LATENCY")
     print("="*70)
 
     results = {}
     n_terms = len(TEST_TERMS)
 
-    # A) Monolítico (JSON)
+    # A) Monolithic (JSON)
     json_path = DATAMARTS_DIR / "inverted_index.json"
     if json_path.exists():
         start = time.perf_counter()
@@ -139,11 +139,11 @@ def benchmark_query_latency():
             for term in TEST_TERMS:
                 _ = data.get(term, None)
         json_time = (time.perf_counter() - start) * 1000
-        results["Monolítico (JSON RAM)"] = round(json_time, 3)
+        results["Monolithic (JSON RAM)"] = round(json_time, 3)
     else:
-        results["Monolítico (JSON RAM)"] = None
+        results["Monolithic (JSON RAM)"] = None
 
-    # B) Jerárquico (Carpetas)
+    # B) Hierarchical (Folders)
     folder_path = DATAMARTS_DIR / "inverted_index_folders"
     if folder_path.exists():
         start = time.perf_counter()
@@ -153,11 +153,11 @@ def benchmark_query_latency():
             if term_file.exists():
                 _ = term_file.read_text(encoding="utf-8")
         folder_time = (time.perf_counter() - start) * 1000
-        results["Jerárquico (Archivos/IO)"] = round(folder_time, 3)
+        results["Hierarchical (Files/IO)"] = round(folder_time, 3)
     else:
-        results["Jerárquico (Archivos/IO)"] = None
+        results["Hierarchical (Files/IO)"] = None
 
-    # C) Relacional (SQLite B-Tree)
+    # C) Relational (SQLite B-Tree)
     db_path = DATAMARTS_DIR / "inverted_index.db"
     if db_path.exists():
         start = time.perf_counter()
@@ -168,11 +168,11 @@ def benchmark_query_latency():
             _ = cur.fetchall()
         conn.close()
         db_time = (time.perf_counter() - start) * 1000
-        results["SQLite (Índice B-Tree)"] = round(db_time, 3)
+        results["SQLite (B-Tree Index)"] = round(db_time, 3)
     else:
-        results["SQLite (Índice B-Tree)"] = None
+        results["SQLite (B-Tree Index)"] = None
 
-    # D) Tabular (TSV secuencial)
+    # D) Tabular (sequential TSV)
     tsv_path = DATAMARTS_DIR / "inverted_index_c.tsv"
     if not tsv_path.exists():
         tsv_path = DATAMARTS_DIR / "inverted_index_java.tsv"
@@ -182,37 +182,37 @@ def benchmark_query_latency():
             terms_set = set(TEST_TERMS)
             _ = [line for line in f if line.split("\t")[0] in terms_set]
         tsv_time = (time.perf_counter() - start) * 1000
-        results["Tabular TSV (Escaneo Secuencial)"] = round(tsv_time, 3)
+        results["Tabular TSV (Sequential Scan)"] = round(tsv_time, 3)
     else:
-        results["Tabular TSV (Escaneo Secuencial)"] = None
+        results["Tabular TSV (Sequential Scan)"] = None
 
-    print(f"{'Estructura Evaluada':<35} | {'Tiempo Total (ms)':>18} | {'Media/Término (ms)':>18}")
+    print(f"{'Evaluated Structure':<35} | {'Total Time (ms)':>18} | {'Avg/Term (ms)':>18}")
     print("-" * 77)
     for est, total_ms in results.items():
         if total_ms is not None:
             avg_ms = total_ms / n_terms
             print(f"{est:<35} | {total_ms:>18.3f} | {avg_ms:>18.3f}")
         else:
-            print(f"{est:<35} | {'No generado':>18} | {'N/A':>18}")
+            print(f"{est:<35} | {'Not generated':>18} | {'N/A':>18}")
 
     return results
 
 # -------------------------------------------------------------
-# 4. BENCHMARK: RENDIMIENTO DE ACCESO EN EL DATALAKE (LOOKUP COST)
+# 4. BENCHMARK: DATALAKE ACCESS PERFORMANCE (LOOKUP COST)
 # -------------------------------------------------------------
 def benchmark_datalake_lookup():
     print("\n" + "="*70)
-    print(" 4. BENCHMARK: COSTE DE BÚSQUEDA EN EL DATALAKE (LOOKUP COST)")
+    print(" 4. BENCHMARK: DATALAKE LOOKUP COST")
     print("="*70)
 
     time_dir = DATALAKE_DIR / "time"
     id_dir = DATALAKE_DIR / "id"
 
-    # Seleccionar un libro de prueba
+    # Select a test book
     sample_files = list(SAMPLE_DATA_DIR.glob("*_body.txt")) if SAMPLE_DATA_DIR.exists() else []
     sample_id = int(sample_files[0].stem.split("_")[0]) if sample_files else 6
 
-    # A) Particionamiento Temporal: requiere escaneo recursivo os.walk
+    # A) Time partitioning: requires a recursive os.walk scan
     time_cost_ms = 0.0
     if time_dir.exists():
         start = time.perf_counter()
@@ -223,7 +223,7 @@ def benchmark_datalake_lookup():
                 break
         time_cost_ms = (time.perf_counter() - start) * 1000
 
-    # B) Particionamiento por ID: cálculo directo de ruta matemática O(1)
+    # B) ID partitioning: direct mathematical path calculation O(1)
     id_cost_ms = 0.0
     id_str = f"{sample_id:04d}"
     parts = [id_str[i:i+2] for i in range(0, len(id_str), 2)]
@@ -236,10 +236,10 @@ def benchmark_datalake_lookup():
     _ = target_file.exists()
     id_cost_ms = (time.perf_counter() - start) * 1000
 
-    print(f"{'Estrategia de Partición':<35} | {'Coste Búsqueda (ms)':>20} | {'Complejidad':>15}")
+    print(f"{'Partitioning Strategy':<35} | {'Lookup Cost (ms)':>20} | {'Complexity':>15}")
     print("-" * 76)
-    print(f"{'Partición Temporal (time/YYYY/HH)':<35} | {time_cost_ms:>20.4f} | {'O(N) Walk':>15}")
-    print(f"{'Partición por ID (id/XX/YY)':<35} | {id_cost_ms:>20.4f} | {'O(1) Direct':>15}")
+    print(f"{'Time Partition (time/YYYY/HH)':<35} | {time_cost_ms:>20.4f} | {'O(N) Walk':>15}")
+    print(f"{'ID Partition (id/XX/YY)':<35} | {id_cost_ms:>20.4f} | {'O(1) Direct':>15}")
 
     return {
         "partition_time_ms": round(time_cost_ms, 4),
@@ -247,7 +247,7 @@ def benchmark_datalake_lookup():
     }
 
 # -------------------------------------------------------------
-# EJECUCIÓN PRINCIPAL Y EXPORTACIÓN
+# MAIN EXECUTION AND EXPORT
 # -------------------------------------------------------------
 if __name__ == "__main__":
     BENCHMARKS_DIR.mkdir(parents=True, exist_ok=True)
@@ -270,6 +270,6 @@ if __name__ == "__main__":
         json.dump(all_metrics, f, indent=2)
 
     print("\n" + "="*70)
-    print(f"[EXITO] Todas las pruebas han finalizado.")
-    print(f"Resultados guardados para el informe en: {output_json}")
+    print(f"[SUCCESS] All tests have finished.")
+    print(f"Results saved for the report in: {output_json}")
     print("="*70)

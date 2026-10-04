@@ -9,7 +9,7 @@ TEST_DL = BASE_DIR / "datalake_test"
 def benchmark_datalake_structures():
     books = list(SAMPLE_DIR.glob("*_body.txt"))
     if not books:
-        print("[!] No se encontraron libros en sample_data")
+        print("[!]Dont find books in sample_data")
         return
 
     time_dir = TEST_DL / "time_based" / "20261004" / "12"
@@ -43,6 +43,6 @@ def benchmark_datalake_structures():
 
     shutil.rmtree(TEST_DL, ignore_errors=True)
 
-    print("\n=== RESULTADOS BENCHMARK DATALAKE (Requisito 3.1) ===")
+    print("\n=== RESULTS BENCHMARK DATALAKE (Requisito 3.1) ===")
     print(f"Time-Based Write Time : {write_time_based*1000:.2f} ms | Lookup (Scan) : {lookup_time_based*1000:.3f} ms")
     print(f"Book-Based Write Time : {write_book_based*1000:.2f} ms | Lookup (Direct): {lookup_book_based*1000:.3f} ms")

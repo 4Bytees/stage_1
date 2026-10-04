@@ -1,33 +1,62 @@
-# Archivos temporales
-__pycache__/
-*.pyc
-.DS_Store
+# ==========================================
+# 1. Temporary Files and IDEs
+# ==========================================
 .vscode/
 .idea/
+.DS_Store
+*.swp
 
-# Excluir datos pesados de Git
-!datalake/.gitkeep
-!datamarts/.gitkeep
-sample_data/*
-
-# Bases de datos locales
-*.db
-*.sqlite
-
-# Compilados de Java
-bin/
-*.class
-
-# Compilados de C
-*.exe
-*.o
-
-# Binarios y compilados
-bin/
-*.exe
-*.o
-
-# Entornos virtuales de Python
+# ==========================================
+# 2. Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
 .venv/
 venv/
 env/
+
+# ==========================================
+# 3. Java
+# ==========================================
+bin/
+*.class
+*.jar
+*.war
+target/
+
+# ==========================================
+# 4. C / C++ / Binaries
+# ==========================================
+*.exe
+*.o
+*.obj
+*.out
+
+# ==========================================
+# 5. Exclusion of Local Mass Data (Data Lake and Data Marts)
+# ==========================================
+# Ignore the large amounts of data in the on-premises data lake and data marts
+datalake/*
+!datalake/.gitkeep
+
+datamarts/*
+!datamarts/.gitkeep
+
+# Exclude locally created SQLite/NoSQL databases
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+
+# Temporary control logs if you want them to start fresh remotely
+# (Optional: Delete the following 2 lines if you want the control history to be retained)
+control/downloaded_books.txt
+control/indexed_books.txt
+!control/.gitkeep
+
+# ==========================================
+# 6. Sample Data (for correction)
+# ==========================================
+# We do NOT ignore `sample_data/` to allow uploading a smaller test dataset
+!sample_data/

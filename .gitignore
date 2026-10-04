@@ -40,8 +40,17 @@ target/
 datalake/*
 !datalake/.gitkeep
 
-datamarts/*
-!datamarts/.gitkeep
+# Exclude all hierarchical indexes by folders (avoids the +75,000 files)
+datamarts/inverted_index_folders/
+datamarts/inverted_index_folders_c/
+datamarts/inverted_index_folders_java/
+
+# Exclude large JSON files if they are from bulk testing (leave only `sample_data/` if applicable)datamarts/*.json
+!sample_data/*.json
+
+# Excluir bases de datos generadas en local
+datamarts/*.db
+datamarts/*.sqlite
 
 # Exclude locally created SQLite/NoSQL databases
 *.db

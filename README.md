@@ -32,14 +32,19 @@ stage_1/
 │   ├── java/                       # Java indexer
 │   └── c/                          # C indexer
 ├── bin/                            # Compiled binaries (Main.class, indexer_c.exe)
+├── control/                        # Control layer state tracking files
+│   ├── .gitkeep                    # Preserves empty directory structure in Git
+│   ├── downloaded_books.txt        # Registry tracking successfully downloaded book IDs
+│   ├── indexed_books.txt           # Registry tracking processed and indexed book IDs
+│   └── failed_to_download_books.txt# Log capturing unretrievable or missing book IDs
 ├── datalake/
 │   ├── time/                       # Books partitioned by date (YYYY/HH)
 │   └── id/                         # Books partitioned by ID (XX/YY)
 ├── datamarts/                      # Inverted indexes (JSON, folders, SQLite, TSV)
 ├── sample_data/                    # Sample books (<id>_body.txt)
 ├── benchmarks/
-│   └── benchmark_results.json      # Output of the benchmark script
-│   └── benchmark_datalake.py       # Script to measure read/write latency and storage overhead across Datalake partitioning schemes
+│   ├── benchmark_results.json      # Output of the benchmark script with raw metric logs
+│   ├── benchmark_datalake.py       # Script to measure read/write latency and storage overhead across Datalake partitioning schemes
 │   └── run_benchmarks.py           # Main execution runner that orchestrates and executes all benchmark tests across languages and index formats
 └── README.md
 ```

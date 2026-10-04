@@ -25,21 +25,22 @@ stored in several formats so we can compare their performance:
 
 ## Project Structure
 
+```text
 stage_1/
 ├── src/
-│ ├── python/indexer/indexer.py # Python indexer
-│ ├── java/ # Java indexer (TODO: confirm path)
-│ └── c/ # C indexer (TODO: confirm path)
-├── bin/ # Compiled binaries (Main.class, indexer_c.exe)
+│   ├── python/indexer/indexer.py   # Python indexer
+│   ├── java/                       # Java indexer
+│   └── c/                          # C indexer
+├── bin/                            # Compiled binaries (Main.class, indexer_c.exe)
 ├── datalake/
-│ ├── time/ # Books partitioned by date (YYYY/HH)
-│ └── id/ # Books partitioned by ID (XX/YY)
-├── datamarts/ # Inverted indexes (JSON, folders, SQLite, TSV)
-├── sample_data/ # Sample books (<id>_body.txt)
+│   ├── time/                       # Books partitioned by date (YYYY/HH)
+│   └── id/                         # Books partitioned by ID (XX/YY)
+├── datamarts/                      # Inverted indexes (JSON, folders, SQLite, TSV)
+├── sample_data/                    # Sample books (<id>_body.txt)
 ├── benchmarks/
-│ └── benchmark_results.json # Output of the benchmark script
+│   └── benchmark_results.json      # Output of the benchmark script
 └── README.md
-
+```
 
 ## Datalake
 
@@ -87,7 +88,4 @@ gcc -O2 -o bin/indexer_c.exe src/c/*.c
 python benchmarks/benchmark.py
 ```
 
-## Results
 
-TODO: add the main conclusions from `benchmark_results.json`
-(fastest language, smallest datamart, fastest query structure, partitioning comparison).

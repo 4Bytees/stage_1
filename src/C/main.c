@@ -231,45 +231,52 @@ void save_full_monolithic_json() {
     fclose(f_json);
 }
 
-#include <windows.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
-int main() {
-    printf("--- Starting Dynamic C Inverted Indexing Process ---\n");
-
-    WIN32_FIND_DATA find_data;
-    HANDLE h_find = FindFirstFile("sample_data\\*_body.txt", &find_data);
-
-    if (h_find == INVALID_HANDLE_VALUE) {
-        printf("[C ERROR] No se encontraron archivos *_body.txt en sample_data/\n");
-        return 1;
+void process_directory(const char *dir_path, int *total_processed) {
+    DIR *dir = opendir(dir_path);
+    if (!dir) return;
+    
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        // Ignorar directorios de navegación
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
+        
+        char path[1024];
+        snprintf(path, sizeof(path), "%s/%s", dir_path, ent->d_name);
+        
+        struct stat st;
+        if (stat(path, &st) == 0) {
+            if (S_ISDIR(st.st_mode)) {
+                process_directory(path, total_processed);
+            } else if (strstr(ent->d_name, "_body.txt")) {
+                int book_id = 0;
+                if (sscanf(ent->d_name, "%d_body.txt", &book_id) == 1) {
+                    clock_t start = clock();
+                    tokenize_file(path, book_id);
+                    append_book_to_tsv_and_folders(book_id);
+                    clock_t end = clock();
+                    double elapsed_ms = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.0;
+                    printf("[C] Libro ID %d indexado en %.2f ms.\n", book_id, elapsed_ms);
+                    (*total_processed)++;
+                }
+            }
+        }
     }
+    closedir(dir);
+}
+
+int main(int argc, char *argv[]) {
+    printf("--- Starting Dynamic C Inverted Indexing Process ---\n");
+    const char *target_dir = (argc > 1) ? argv[1] : "../datalake"; 
+    
+    remove("datamarts/inverted_index_c.tsv");
 
     int total_processed = 0;
-
-    do {
-        char filename[MAX_PATH];
-        strncpy(filename, find_data.cFileName, MAX_PATH - 1);
-
-        int book_id = 0;
-        if (sscanf(filename, "%d_body.txt", &book_id) == 1) {
-            char filepath[512];
-            snprintf(filepath, sizeof(filepath), "sample_data/%s", filename);
-
-            clock_t start = clock();
-            tokenize_file(filepath, book_id);
-            append_book_to_tsv_and_folders(book_id);
-            clock_t end = clock();
-
-            double elapsed_ms = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.0;
-            printf("[C] Libro ID %d indexado en %.2f ms.\n", book_id, elapsed_ms);
-            total_processed++;
-        }
-    } while (FindNextFile(h_find, &find_data) != 0);
-
-    FindClose(h_find);
-
+    process_directory(target_dir, &total_processed);
+    
     save_full_monolithic_json();
-    printf("[C] Finalizado. Total de libros indexados: %d. Indice guardado en datamarts/inverted_index_c.json\n", total_processed);
-
+    printf("[C] Finalizado. Total indexados: %d.\n", total_processed);
     return 0;
 }

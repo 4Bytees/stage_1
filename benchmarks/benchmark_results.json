@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-02 13:53:52",
+  "timestamp": "2026-10-04 18:30:52",
   "indexing_duration_ms": {
-    "Python": 135274.23,
-    "Java": 64895.61,
-    "C": 121872.83
+    "Python": 105473.75,
+    "Java": 80.3,
+    "C": 8.78
   },
   "storage_footprint": {
     "Python Monol\u00edtico (JSON)": {
@@ -12,54 +12,54 @@
       "mb": 50.925
     },
     "Python Jer\u00e1rquico (Carpetas)": {
-      "bytes": 62783592,
-      "kb": 61312.1,
-      "mb": 59.875
+      "bytes": 36804164,
+      "kb": 35941.57,
+      "mb": 35.099
     },
     "Python Relacional (SQLite)": {
-      "bytes": 30138368,
-      "kb": 29432.0,
-      "mb": 28.742
+      "bytes": 30035968,
+      "kb": 29332.0,
+      "mb": 28.645
     },
     "Java Monol\u00edtico (JSON)": {
-      "bytes": 30209047,
-      "kb": 29501.02,
-      "mb": 28.81
+      "bytes": 207388,
+      "kb": 202.53,
+      "mb": 0.198
     },
     "Java Jer\u00e1rquico (Carpetas)": {
-      "bytes": 54554885,
-      "kb": 53276.25,
-      "mb": 52.028
+      "bytes": 40351,
+      "kb": 39.41,
+      "mb": 0.038
     },
     "Java Tabular (TSV)": {
-      "bytes": 58377487,
-      "kb": 57009.26,
-      "mb": 55.673
+      "bytes": 0,
+      "kb": 0.0,
+      "mb": 0.0
     },
     "C Monol\u00edtico (JSON)": {
-      "bytes": 31556893,
-      "kb": 30817.28,
-      "mb": 30.095
+      "bytes": 8,
+      "kb": 0.01,
+      "mb": 0.0
     },
     "C Jer\u00e1rquico (Carpetas)": {
-      "bytes": 48984410,
-      "kb": 47836.34,
-      "mb": 46.715
+      "bytes": 43352,
+      "kb": 42.34,
+      "mb": 0.041
     },
     "C Tabular (TSV)": {
-      "bytes": 52498072,
-      "kb": 51267.65,
-      "mb": 50.066
+      "bytes": 0,
+      "kb": 0.0,
+      "mb": 0.0
     }
   },
   "query_latency_ms": {
-    "Monol\u00edtico (JSON RAM)": 329.968,
-    "Jer\u00e1rquico (Archivos/IO)": 46.496,
-    "SQLite (\u00cdndice B-Tree)": 2.164,
-    "Tabular TSV (Escaneo Secuencial)": 146.27
+    "Monol\u00edtico (JSON RAM)": 317.72,
+    "Jer\u00e1rquico (Archivos/IO)": 41.451,
+    "SQLite (\u00cdndice B-Tree)": 1.84,
+    "Tabular TSV (Escaneo Secuencial)": null
   },
   "datalake_lookup_ms": {
-    "partition_time_ms": 0.4276,
-    "partition_id_ms": 0.0311
+    "partition_time_ms": 0.1377,
+    "partition_id_ms": 0.0228
   }
 }

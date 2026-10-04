@@ -45,12 +45,12 @@ def real_download_book(book_id: int) -> bool:
     )
     return crawler._fetch_and_save_book(book_id)
 
-def run_pipeline_step():
+def run_pipeline_step(total_books_target: int = 15):
     init_control_layer()
     downloaded = read_ids(DOWNLOADS_FILE)
     indexed = read_ids(INDEXED_FILE)
-
     pending_to_index = downloaded - indexed
+
     if pending_to_index:
         book_id = sorted(list(pending_to_index))[0]
         print(f"[CONTROL] Procesando libro pendiente ID {book_id}...")
@@ -61,7 +61,7 @@ def run_pipeline_step():
             print(f"[CONTROL] Libro ID {book_id} indexado y registrado exitosamente.")
         return True
 
-    for candidate_id in range(RANGE_START, RANGE_END + 1):
+    for candidate_id in range(1, total_books_target + 1):
         if candidate_id not in downloaded:
             print(f"[CONTROL] Descargando nuevo candidato ID {candidate_id}...")
             if real_download_book(candidate_id):

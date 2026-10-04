@@ -8,7 +8,7 @@ if str(PYTHON_ROOT) not in sys.path:
 
 from indexer.base_container import DATALAKE_DIR, BASE_DIR
 from indexer.containers.hierarchical_indexer import HierarchicalFolderStructure
-from indexer.containers.monolitic_indexer import MonoliticIndexer
+from indexer.containers.monolithic_indexer import MonolithicIndexer
 from indexer.containers.sqlite_indexer import SqliteIndexer
 
 
@@ -37,7 +37,7 @@ def process_single_indexing(book_id: int) -> bool:
   try:
     text = body_path.read_text(encoding="utf-8", errors="ignore")
 
-    monolithic = MonoliticIndexer()
+    monolithic = MonolithicIndexer()
     hierarchical = HierarchicalFolderStructure()
     sqlite_idx = SqliteIndexer()
 

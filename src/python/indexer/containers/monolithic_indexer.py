@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from ..base_container import InvertedIndexDatamartContainer, DATALAKE_DIR, DATAMARTS_DIR
 
-class MonoliticIndexer(InvertedIndexDatamartContainer):
+class MonolithicIndexer(InvertedIndexDatamartContainer):
 
     def __init__(self, datalake_path=DATALAKE_DIR, output_path=DATAMARTS_DIR / "inverted_index.json"):
         super().__init__(datalake_path)

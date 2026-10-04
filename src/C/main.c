@@ -269,7 +269,7 @@ void process_directory(const char *dir_path, int *total_processed) {
 
 int main(int argc, char *argv[]) {
     printf("--- Starting Dynamic C Inverted Indexing Process ---\n");
-    const char *target_dir = (argc > 1) ? argv[1] : "../datalake"; 
+    const char *target_dir = (argc > 1) ? argv[1] : "datalake/time"; 
     
     remove("datamarts/inverted_index_c.tsv");
     int total_processed = 0;

@@ -37,6 +37,9 @@ target/
 # 5. Exclusion of Local Mass Data (Data Lake and Data Marts)
 # ==========================================
 # Ignore the large amounts of data in the on-premises data lake and data marts
+datamarts/
+datalake/
+control/
 datalake/*
 !datalake/.gitkeep
 

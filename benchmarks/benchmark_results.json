@@ -1,65 +1,65 @@
 {
-  "timestamp": "2026-10-04 18:30:52",
+  "timestamp": "2026-10-04 23:18:47",
   "indexing_duration_ms": {
-    "Python": 105473.75,
-    "Java": 80.3,
-    "C": 8.78
+    "Python": 457158.44,
+    "Java": 338049.1,
+    "C": 708170.07
   },
   "storage_footprint": {
-    "Python Monol\u00edtico (JSON)": {
-      "bytes": 53398825,
-      "kb": 52147.29,
-      "mb": 50.925
+    "Python Monolithic (JSON)": {
+      "bytes": 141340551,
+      "kb": 138027.88,
+      "mb": 134.793
     },
-    "Python Jer\u00e1rquico (Carpetas)": {
-      "bytes": 36804164,
-      "kb": 35941.57,
-      "mb": 35.099
+    "Python Hierarchical (Folders)": {
+      "bytes": 46462714,
+      "kb": 45373.74,
+      "mb": 44.31
     },
-    "Python Relacional (SQLite)": {
-      "bytes": 30035968,
-      "kb": 29332.0,
-      "mb": 28.645
+    "Python Relational (SQLite)": {
+      "bytes": 81276928,
+      "kb": 79372.0,
+      "mb": 77.512
     },
-    "Java Monol\u00edtico (JSON)": {
-      "bytes": 207388,
-      "kb": 202.53,
-      "mb": 0.198
+    "Java Monolithic (JSON)": {
+      "bytes": 80287112,
+      "kb": 78405.38,
+      "mb": 76.568
     },
-    "Java Jer\u00e1rquico (Carpetas)": {
-      "bytes": 40351,
-      "kb": 39.41,
-      "mb": 0.038
+    "Java Hierarchical (Folders)": {
+      "bytes": 90273823,
+      "kb": 88158.03,
+      "mb": 86.092
     },
     "Java Tabular (TSV)": {
-      "bytes": 0,
-      "kb": 0.0,
-      "mb": 0.0
+      "bytes": 100060305,
+      "kb": 97715.14,
+      "mb": 95.425
     },
-    "C Monol\u00edtico (JSON)": {
-      "bytes": 8,
-      "kb": 0.01,
-      "mb": 0.0
+    "C Monolithic (JSON)": {
+      "bytes": 125962991,
+      "kb": 123010.73,
+      "mb": 120.128
     },
-    "C Jer\u00e1rquico (Carpetas)": {
-      "bytes": 43352,
-      "kb": 42.34,
-      "mb": 0.041
+    "C Hierarchical (Folders)": {
+      "bytes": 135220475,
+      "kb": 132051.25,
+      "mb": 128.956
     },
     "C Tabular (TSV)": {
-      "bytes": 0,
-      "kb": 0.0,
-      "mb": 0.0
+      "bytes": 145025647,
+      "kb": 141626.61,
+      "mb": 138.307
     }
   },
   "query_latency_ms": {
-    "Monol\u00edtico (JSON RAM)": 317.72,
-    "Jer\u00e1rquico (Archivos/IO)": 41.451,
-    "SQLite (\u00cdndice B-Tree)": 1.84,
-    "Tabular TSV (Escaneo Secuencial)": null
+    "Monolithic (JSON RAM)": 953.592,
+    "Hierarchical (Files/IO)": 51.661,
+    "SQLite (B-Tree Index)": 4.137,
+    "Tabular TSV (Sequential Scan)": 427.144
   },
   "datalake_lookup_ms": {
-    "partition_time_ms": 0.1377,
-    "partition_id_ms": 0.0228
+    "partition_time_ms": 0.3228,
+    "partition_id_ms": 0.03
   }
 }

@@ -1,4 +1,5 @@
 import indexer.*;
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
@@ -8,11 +9,11 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("--- Starting Dynamic Java Inverted Indexing Process ---");
 
-        Path targetDir = Paths.get(args.length > 0 ? args[0] : "../datalake");
+        Path targetDir = Paths.get(args.length > 0 ? args[0] : "datalake");
 
         try {
             Files.deleteIfExists(Paths.get("datamarts/inverted_index_java.tsv"));
-        } catch (Exception e) {}
+        } catch (IOException ignored) {}
 
         MonolithicIndexer monolithic = new MonolithicIndexer();
         HierarchicalIndexer hierarchical = new HierarchicalIndexer();

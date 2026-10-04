@@ -57,12 +57,15 @@ def process_single_indexing(book_id: int) -> bool:
 if __name__ == "__main__":
     print("--- Running Inverted Indexer Standalone Test ---")
     target_ids = []
-    sample_dir = BASE_DIR / "sample_data"
-    if sample_dir.exists():
-        for f in sample_dir.glob("*_body.txt"):
+    
+    time_dir = DATALAKE_DIR / "time"
+    search_dir = time_dir if time_dir.exists() else BASE_DIR / "sample_data"
+    
+    if search_dir.exists():
+        for f in search_dir.rglob("*_body.txt"):
             b_id = f.stem.split("_")[0]
             if b_id.isdigit():
                 target_ids.append(int(b_id))
-    
+         
     for b_id in sorted(set(target_ids)):
         process_single_indexing(b_id)

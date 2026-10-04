@@ -27,3 +27,8 @@ bin/
 bin/
 *.exe
 *.o
+
+# Entornos virtuales de Python
+.venv/
+venv/
+env/

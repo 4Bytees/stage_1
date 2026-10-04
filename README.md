@@ -78,21 +78,61 @@ The benchmark script measures four things:
 
 Results are printed to the console and saved to `benchmarks/benchmark_results.json`.
 
-## How to Run
+## 🚀 How to Run
+
+### 1. Prerequisites
+Ensure you have the following installed on your system:
+- **Python**: 3.9 or higher
+- **Java**: OpenJDK 11 or higher
+- **GCC / Clang**: C compiler for building binary executables
+
+---
+
+### 2. Compilation (C and Java Modules)
+Before running non-Python implementations, compile the C and Java source files into the `bin/` directory:
+
+```bash
+# Compile Java indexer class files
+javac -d bin src/java/*.java
+
+# Compile C indexer binary executable
+gcc -O2 -o bin/indexer_c.exe src/c/*.c
+
+```
+
+---
+
+### 3. Running the Indexers
+
+To execute the processing pipeline across the implemented programming languages:
 
 ```bash
 # Python indexer
 python src/python/indexer/indexer.py
 
-# Java indexer (TODO: confirm build command)
-javac -d bin src/java/*.java
+# Java indexer
 java -cp bin Main
 
-# C indexer (TODO: confirm build command)
-gcc -O2 -o bin/indexer_c.exe src/c/*.c
+# C indexer
+./bin/indexer_c.exe
 
-# Benchmarks (TODO: confirm script path)
-python benchmarks/benchmark.py
 ```
+
+---
+
+### 4. Running the Benchmarks
+
+To measure execution time, memory footprint, and compare performance across languages and index formats:
+
+```bash
+# Execute the full benchmark suite across Python, Java, and C
+python benchmarks/run_benchmarks.py
+
+# Benchmark Datalake read/write latency across partitioning schemes
+python benchmarks/benchmark_datalake.py
+
+# Generate visualization charts for the report (saved to benchmarks/)
+python benchmarks/generate_plots.py
+
 
 

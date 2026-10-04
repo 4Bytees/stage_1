@@ -14,3 +14,16 @@ datamarts/*
 # Bases de datos locales
 *.db
 *.sqlite
+
+# Compilados de Java
+bin/
+*.class
+
+# Compilados de C
+*.exe
+*.o
+
+# Binarios y compilados
+bin/
+*.exe
+*.o

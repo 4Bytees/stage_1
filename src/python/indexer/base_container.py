@@ -18,7 +18,6 @@ class InvertedIndexDatamartContainer(ABC):
         self.datalake_path = Path(datalake_path)
 
     def tokenize(self, text: str) -> dict[str, list[int]]:
-        """Extrae palabras alfabéticas >= 3 letras, minúsculas, elimina stop words y guarda sus posiciones."""
         words = re.findall(r"\b[a-z]{3,}\b", text.lower())
         position_dict = {}
         for pos, word in enumerate(words):

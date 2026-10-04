@@ -25,7 +25,6 @@ public class TsvIndexer extends BaseContainer {
             for (Map.Entry<String, List<Integer>> entry : positionDict.entrySet()) {
                 String term = entry.getKey();
                 List<Integer> positions = entry.getValue();
-                // Formato: termino \t id_libro \t frecuencia \t posiciones
                 writer.write(term + "\t" + bookId + "\t" + positions.size() + "\t" + positions.toString() + "\n");
             }
         }

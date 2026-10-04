@@ -4,7 +4,6 @@ from pathlib import Path
 from ..base_container import InvertedIndexDatamartContainer, DATALAKE_DIR, DATAMARTS_DIR
 
 class SqliteIndexer(InvertedIndexDatamartContainer):
-    """Tercera estructura de datamart: persistencia en base de datos indexada."""
 
     def __init__(self, datalake_path=DATALAKE_DIR, db_path=DATAMARTS_DIR / "inverted_index.db"):
         super().__init__(datalake_path)

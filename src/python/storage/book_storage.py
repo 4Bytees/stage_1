@@ -11,7 +11,6 @@ class BookStorage(ABC):
             os.makedirs(datalake_path, exist_ok=True)
 
     def separate_header(self, content):
-        """Separa el contenido plano en encabezado y cuerpo[cite: 2]."""
         if BOOK_START not in content or BOOK_END not in content:
             return False
 

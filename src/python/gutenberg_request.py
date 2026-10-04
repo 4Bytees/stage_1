@@ -12,5 +12,5 @@ class GutenbergRequest:
             if response.status_code == 200:
                 return response.text
         except Exception as e:
-            print(f"[ERROR] Conexión fallida para el libro {book_id}: {e}")
+            print(f"[ERROR] Connection failed for the book {book_id}: {e}")
         return None

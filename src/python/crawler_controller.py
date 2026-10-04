@@ -14,7 +14,6 @@ class CrawlerController:
         self.downloaded_path = self.logs_path / "downloaded_books.txt"
         self.failed_to_download_path = self.logs_path / "failed_to_download_books.txt"
         
-        # Nos aseguramos de que existan los archivos de la Capa de Control
         self.logs_path.mkdir(parents=True, exist_ok=True)
         if not self.downloaded_path.exists():
             self.downloaded_path.touch()
@@ -43,7 +42,7 @@ class CrawlerController:
         self.not_downloaded = set(range(1, self.total_books + 1)) - self._downloaded()
 
         if self._failed_to_download():
-            print("[DOWNLOAD] Los siguientes libros no se pudieron descargar:", sorted(list(self._failed_to_download())))
+            print("[DOWNLOAD] The following books could not be downloaded: ", sorted(list(self._failed_to_download())))
 
     def _crawl_book(self):
         if self.not_downloaded:
@@ -54,10 +53,10 @@ class CrawlerController:
                 else:
                     return False
         else:
-            print("[DOWNLOAD] No hay más libros pendientes de descarga.")
+            print("[DOWNLOAD] There are no more books pending download.")
             return False
 
-        print(f"[DOWNLOAD] Descargando nuevo libro con ID {candidate_id}...")
+        print(f"[DOWNLOAD] Downloading new book with ID {candidate_id}...")
         was_successful = self._fetch_and_save_book(candidate_id)
         
         if was_successful:
@@ -74,13 +73,13 @@ class CrawlerController:
         if content:
             path = self.storage.save(book_id, content)
             if path:
-                print(f"[DOWNLOAD] Libro {book_id} successfully found and saved at {path}", "\n")
+                print(f"[DOWNLOAD] Book {book_id} successfully found and saved at {path}", "\n")
                 return True
             else:
-                print(f"[DOWNLOAD] Libro {book_id} descarted (No valid bookmarks)\n")
+                print(f"[DOWNLOAD] Book {book_id} descarted (No valid bookmarks)\n")
                 return False
         else:
-            print(f"[DOWNLOAD] Libro {book_id} dont find in Gutenberg\n")
+            print(f"[DOWNLOAD] Book {book_id} dont find in Gutenberg\n")
             return False
 
 
@@ -94,7 +93,7 @@ if __name__ == "__main__":
     crawler = CrawlerController(
         datalake_path=DATALAKE_PATH,
         logs_path=LOGS_PATH,
-        total_books=10,  # Aumentamos a 10
+        total_books=10, 
         datalake_structure="date"
     )
     

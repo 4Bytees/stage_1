@@ -31,7 +31,7 @@ def find_body_file(book_id: int) -> Path | None:
 def process_single_indexing(book_id: int) -> bool:
   body_path = find_body_file(book_id)
   if not body_path or not body_path.exists():
-    print(f"[INDEXER] Archivo _body.txt para libro {book_id} no encontrado.")
+    print(f"[INDEXER] File _body.txt for book {book_id} not founded.")
     return False
 
   try:
@@ -47,10 +47,10 @@ def process_single_indexing(book_id: int) -> bool:
     hierarchical.save_index_for_book(book_id, position_dict)
     sqlite_idx.save_index_for_book(book_id, position_dict)
 
-    print(f"[INDEXER] Libro ID {book_id} indexado con éxito en los 3 datamarts.")
+    print(f"[INDEXER] Book ID {book_id} successfully indexed in the 3 data marts.")
     return True
   except Exception as e:
-    print(f"[INDEXER ERROR] Fallo al indexar libro {book_id}: {e}")
+    print(f"[INDEXER ERROR] Failed to index book {book_id}: {e}")
     return False
 
 

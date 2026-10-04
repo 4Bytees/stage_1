@@ -16,11 +16,9 @@
 #define HASH_SIZE 65536
 
 static const char *STOP_WORDS[] = {
-    //stopwords inglés
     "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
     "if", "in", "into", "is", "it", "no", "not", "of", "on", "or",
     "such", "that", "the", "their", "then", "there", "these", "they", "this", "to", "with", "from",
-    //stopwords español
     "el", "la", "los", "las", "un", "una", "unos", "unas", "y", "o", "que", "de", "del", "en", "con", "por", "para", "su", "sus",
     NULL
 };
@@ -243,7 +241,7 @@ int main() {
     HANDLE h_find = FindFirstFile("sample_data\\*_body.txt", &find_data);
 
     if (h_find == INVALID_HANDLE_VALUE) {
-        printf("[C ERROR] No se encontraron archivos *_body.txt en sample_data/\n");
+        printf("[C ERROR] No files were found *_body.txt en sample_data/\n");
         return 1;
     }
 
@@ -264,7 +262,7 @@ int main() {
             clock_t end = clock();
 
             double elapsed_ms = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.0;
-            printf("[C] Libro ID %d indexado en %.2f ms.\n", book_id, elapsed_ms);
+            printf("[C] Book ID %d indexed in %.2f ms.\n", book_id, elapsed_ms);
             total_processed++;
         }
     } while (FindNextFile(h_find, &find_data) != 0);
@@ -272,7 +270,7 @@ int main() {
     FindClose(h_find);
 
     save_full_monolithic_json();
-    printf("[C] Finalizado. Total de libros indexados: %d. Indice guardado en datamarts/inverted_index_c.json\n", total_processed);
+    printf("[C] Completed. Total books indexed: %d. Index saved in datamarts/inverted_index_c.json\n", total_processed);
 
     return 0;
 }

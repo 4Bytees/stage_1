@@ -29,10 +29,8 @@ class ControlLayer:
         book_id_str = str(book_id)
         book_id_int = int(book_id)
 
-        # 1. Descargar si no está en la lista de descargados
         if book_id_str not in self.downloaded_ids:
             try:
-                # Enviamos el ID como entero tal como lo requiere CrawlerController
                 success = self.crawler.download(book_id_int)
             except Exception as e:
                 if hasattr(self.crawler, "_crawl_book"):
@@ -45,18 +43,15 @@ class ControlLayer:
             if success or success is None:
                 self._mark_as_done(self.downloaded_file, book_id_str, self.downloaded_ids)
             else:
-                print(f"[Error] No se pudo descargar el libro {book_id_str}")
+                print(f"[Error] The book could not be downloaded {book_id_str}")
                 return
 
-        # 2. Procesar metadatos e indexación
         if book_id_str not in self.indexed_ids:
-            # Comprobar método de metadatos
             if hasattr(self.metadata_service, 'process_single_metadata'):
                 self.metadata_service.process_single_metadata(book_id_str)
             elif hasattr(self.metadata_service, 'metadata_parser'):
                 self.metadata_service.metadata_parser(book_id_str)
 
-            # Comprobar método del indexador
             if hasattr(self.indexer_service, 'process_single_indexing'):
                 self.indexer_service.process_single_indexing(book_id_str)
             elif hasattr(self.indexer_service, 'index_book'):

@@ -9,7 +9,7 @@ public class Main {
 
         Path sampleDir = Paths.get("sample_data");
         if (!Files.exists(sampleDir)) {
-            System.out.println("[JAVA ERROR] Directorio sample_data no encontrado.");
+            System.out.println("[JAVA ERROR] Directory sample_data not found.");
             return;
         }
 
@@ -25,7 +25,7 @@ public class Main {
                 files.add(entry);
             }
         } catch (Exception e) {
-            System.err.println("[JAVA ERROR] Error listando sample_data: " + e.getMessage());
+            System.err.println("[JAVA ERROR] Error listing sample_data: " + e.getMessage());
             return;
         }
 
@@ -34,7 +34,7 @@ public class Main {
             return m.find() ? Integer.valueOf(m.group(1)) : 0;
         }));
 
-        System.out.println("[JAVA] Total de libros detectados para indexar: " + files.size());
+        System.out.println("[JAVA] Total number of books detected for indexing: " + files.size());
 
         for (Path bodyFile : files) {
             Matcher matcher = pattern.matcher(bodyFile.getFileName().toString());
@@ -51,9 +51,9 @@ public class Main {
                 tsvIndexer.saveIndexForBook(bookId, positionDict);
 
                 long duration = System.currentTimeMillis() - startTime;
-                System.out.println("[JAVA] Libro ID " + bookId + " indexado en " + duration + " ms.");
+                System.out.println("[JAVA] Book ID " + bookId + " indexed in " + duration + " ms.");
             } catch (Exception e) {
-                System.err.println("[JAVA ERROR] Fallo al procesar libro " + bookId + ": " + e.getMessage());
+                System.err.println("[JAVA ERROR] Error processing book " + bookId + ": " + e.getMessage());
             }
         }
     }

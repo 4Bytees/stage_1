@@ -6,10 +6,9 @@ __pycache__/
 .idea/
 
 # Excluir datos pesados de Git
-datalake/*
 !datalake/.gitkeep
-datamarts/*
 !datamarts/.gitkeep
+sample_data/*
 
 # Bases de datos locales
 *.db

@@ -2,30 +2,43 @@ import indexer.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.regex.*;
+import java.util.stream.Stream;
 
 public class Main {
     public static void main(String[] args) {
         System.out.println("--- Starting Dynamic Java Inverted Indexing Process ---");
+<<<<<<< HEAD
 
         Path sampleDir = Paths.get("sample_data");
         if (!Files.exists(sampleDir)) {
             System.out.println("[JAVA ERROR] Directory sample_data not found.");
             return;
         }
+=======
+        
+        Path targetDir = Paths.get(args.length > 0 ? args[0] : "../datalake");
+        
+        try {
+            Files.deleteIfExists(Paths.get("datamarts/inverted_index_java.tsv"));
+        } catch (Exception e) {}
+>>>>>>> feature/integracion-lucas
 
         MonolithicIndexer monolithic = new MonolithicIndexer();
         HierarchicalIndexer hierarchical = new HierarchicalIndexer();
         TsvIndexer tsvIndexer = new TsvIndexer();
-
         Pattern pattern = Pattern.compile("^(\\d+)_body\\.txt$");
         List<Path> files = new ArrayList<>();
 
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(sampleDir, "*_body.txt")) {
-            for (Path entry : stream) {
-                files.add(entry);
-            }
+        try (Stream<Path> stream = Files.walk(targetDir)) {
+            stream.filter(Files::isRegularFile)
+                  .filter(p -> p.getFileName().toString().endsWith("_body.txt"))
+                  .forEach(files::add);
         } catch (Exception e) {
+<<<<<<< HEAD
             System.err.println("[JAVA ERROR] Error listing sample_data: " + e.getMessage());
+=======
+            System.err.println("[JAVA ERROR] Error iterando " + targetDir + ": " + e.getMessage());
+>>>>>>> feature/integracion-lucas
             return;
         }
 

@@ -1,29 +1,71 @@
-# Archivos temporales
-__pycache__/
-*.pyc
-.DS_Store
+# ==========================================
+# 1. Temporary Files and IDEs
+# ==========================================
 .vscode/
 .idea/
+.DS_Store
+*.swp
 
-# Excluir datos pesados de Git
-datalake/*
-!datalake/.gitkeep
-datamarts/*
-!datamarts/.gitkeep
+# ==========================================
+# 2. Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
 
-# Bases de datos locales
-*.db
-*.sqlite
-
-# Compilados de Java
+# ==========================================
+# 3. Java
+# ==========================================
 bin/
 *.class
+*.jar
+*.war
+target/
 
-# Compilados de C
+# ==========================================
+# 4. C / C++ / Binaries
+# ==========================================
 *.exe
 *.o
+*.obj
+*.out
 
-# Binarios y compilados
-bin/
-*.exe
-*.o
+# ==========================================
+# 5. Exclusion of Local Mass Data (Data Lake and Data Marts)
+# ==========================================
+# Ignore the large amounts of data in the on-premises data lake and data marts
+datalake/*
+!datalake/.gitkeep
+
+# Exclude all hierarchical indexes by folders (avoids the +75,000 files)
+datamarts/inverted_index_folders/
+datamarts/inverted_index_folders_c/
+datamarts/inverted_index_folders_java/
+
+# Exclude large JSON files if they are from bulk testing (leave only `sample_data/` if applicable)datamarts/*.json
+!sample_data/*.json
+
+# Excluir bases de datos generadas en local
+datamarts/*.db
+datamarts/*.sqlite
+
+# Exclude locally created SQLite/NoSQL databases
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+
+# Temporary control logs if you want them to start fresh remotely
+# (Optional: Delete the following 2 lines if you want the control history to be retained)
+control/downloaded_books.txt
+control/indexed_books.txt
+!control/.gitkeep
+
+# ==========================================
+# 6. Sample Data (for correction)
+# ==========================================
+# We do NOT ignore `sample_data/` to allow uploading a smaller test dataset
+!sample_data/

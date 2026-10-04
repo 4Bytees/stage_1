@@ -6,8 +6,8 @@ SRC = main.c
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	@if not exist "..\..\bin" mkdir "..\..\bin"
+	mkdir -p ../../bin
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
 
 clean:
-	@if exist $(TARGET) del $(TARGET)
+	rm -f $(TARGET)

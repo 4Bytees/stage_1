@@ -235,24 +235,12 @@ void save_full_monolithic_json() {
 #include <dirent.h>
 #include <sys/stat.h>
 
-<<<<<<< HEAD
-int main() {
-    printf("--- Starting Dynamic C Inverted Indexing Process ---\n");
-
-    WIN32_FIND_DATA find_data;
-    HANDLE h_find = FindFirstFile("sample_data\\*_body.txt", &find_data);
-
-    if (h_find == INVALID_HANDLE_VALUE) {
-        printf("[C ERROR] No files were found *_body.txt en sample_data/\n");
-        return 1;
-=======
 void process_directory(const char *dir_path, int *total_processed) {
     DIR *dir = opendir(dir_path);
     if (!dir) return;
     
     struct dirent *ent;
     while ((ent = readdir(dir)) != NULL) {
-        // Ignorar directorios de navegación
         if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
         
         char path[1024];
@@ -270,12 +258,11 @@ void process_directory(const char *dir_path, int *total_processed) {
                     append_book_to_tsv_and_folders(book_id);
                     clock_t end = clock();
                     double elapsed_ms = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.0;
-                    printf("[C] Libro ID %d indexado en %.2f ms.\n", book_id, elapsed_ms);
+                    printf("[C] Book ID %d indexed in %.2f ms.\n", book_id, elapsed_ms);
                     (*total_processed)++;
                 }
             }
         }
->>>>>>> feature/integracion-lucas
     }
     closedir(dir);
 }
@@ -285,40 +272,10 @@ int main(int argc, char *argv[]) {
     const char *target_dir = (argc > 1) ? argv[1] : "../datalake"; 
     
     remove("datamarts/inverted_index_c.tsv");
-
     int total_processed = 0;
-<<<<<<< HEAD
-
-    do {
-        char filename[MAX_PATH];
-        strncpy(filename, find_data.cFileName, MAX_PATH - 1);
-
-        int book_id = 0;
-        if (sscanf(filename, "%d_body.txt", &book_id) == 1) {
-            char filepath[512];
-            snprintf(filepath, sizeof(filepath), "sample_data/%s", filename);
-
-            clock_t start = clock();
-            tokenize_file(filepath, book_id);
-            append_book_to_tsv_and_folders(book_id);
-            clock_t end = clock();
-
-            double elapsed_ms = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.0;
-            printf("[C] Book ID %d indexed in %.2f ms.\n", book_id, elapsed_ms);
-            total_processed++;
-        }
-    } while (FindNextFile(h_find, &find_data) != 0);
-
-    FindClose(h_find);
-
-    save_full_monolithic_json();
-    printf("[C] Completed. Total books indexed: %d. Index saved in datamarts/inverted_index_c.json\n", total_processed);
-
-=======
     process_directory(target_dir, &total_processed);
     
     save_full_monolithic_json();
-    printf("[C] Finalizado. Total indexados: %d.\n", total_processed);
->>>>>>> feature/integracion-lucas
+    printf("[C] Completed. Total books indexed: %d. Index saved in datamarts/inverted_index_c.json\n", total_processed);
     return 0;
 }

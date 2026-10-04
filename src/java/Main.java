@@ -7,21 +7,12 @@ import java.util.stream.Stream;
 public class Main {
     public static void main(String[] args) {
         System.out.println("--- Starting Dynamic Java Inverted Indexing Process ---");
-<<<<<<< HEAD
 
-        Path sampleDir = Paths.get("sample_data");
-        if (!Files.exists(sampleDir)) {
-            System.out.println("[JAVA ERROR] Directory sample_data not found.");
-            return;
-        }
-=======
-        
         Path targetDir = Paths.get(args.length > 0 ? args[0] : "../datalake");
-        
+
         try {
             Files.deleteIfExists(Paths.get("datamarts/inverted_index_java.tsv"));
         } catch (Exception e) {}
->>>>>>> feature/integracion-lucas
 
         MonolithicIndexer monolithic = new MonolithicIndexer();
         HierarchicalIndexer hierarchical = new HierarchicalIndexer();
@@ -34,11 +25,7 @@ public class Main {
                   .filter(p -> p.getFileName().toString().endsWith("_body.txt"))
                   .forEach(files::add);
         } catch (Exception e) {
-<<<<<<< HEAD
-            System.err.println("[JAVA ERROR] Error listing sample_data: " + e.getMessage());
-=======
-            System.err.println("[JAVA ERROR] Error iterando " + targetDir + ": " + e.getMessage());
->>>>>>> feature/integracion-lucas
+            System.err.println("[JAVA ERROR] Error listing " + targetDir + ": " + e.getMessage());
             return;
         }
 
@@ -52,17 +39,15 @@ public class Main {
         for (Path bodyFile : files) {
             Matcher matcher = pattern.matcher(bodyFile.getFileName().toString());
             if (!matcher.find()) continue;
-            int bookId = Integer.parseInt(matcher.group(1));
 
+            int bookId = Integer.parseInt(matcher.group(1));
             try {
                 long startTime = System.currentTimeMillis();
                 String content = Files.readString(bodyFile);
                 Map<String, List<Integer>> positionDict = monolithic.tokenize(content);
-
                 monolithic.saveIndexForBook(bookId, positionDict);
                 hierarchical.saveIndexForBook(bookId, positionDict);
                 tsvIndexer.saveIndexForBook(bookId, positionDict);
-
                 long duration = System.currentTimeMillis() - startTime;
                 System.out.println("[JAVA] Book ID " + bookId + " indexed in " + duration + " ms.");
             } catch (Exception e) {

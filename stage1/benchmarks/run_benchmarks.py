@@ -41,6 +41,14 @@ import subprocess
 import hashlib
 from pathlib import Path
 
+# Force UTF-8 stdout/stderr on Windows console to prevent cp1252 charmap encode errors
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # ---------------------------------------------------------------------------
 # Project paths
 # ---------------------------------------------------------------------------
@@ -53,9 +61,37 @@ CONTROL_DIR   = BASE_DIR / "control"
 BIN_DIR       = BASE_DIR / "bin"
 SRC_PY_DIR    = BASE_DIR / "src" / "python"
 
-# Add Python source to sys.path so query helpers can be imported
-if str(SRC_PY_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_PY_DIR))
+# Add project directories to sys.path so modules can be imported
+for _p in [SRC_PY_DIR, BENCHMARKS_DIR, BASE_DIR]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
+# Safe top-level imports for benchmark modules
+try:
+    # pyrefly: ignore[missing-import]
+    from query_benchmark import query_monolithic, query_hierarchical, query_sqlite
+except ImportError:
+    try:
+        from src.python.query_benchmark import query_monolithic, query_hierarchical, query_sqlite
+    except ImportError:
+        query_monolithic = query_hierarchical = query_sqlite = None  # type: ignore
+
+try:
+    # pyrefly: ignore[missing-import]
+    from indexer.indexer import process_single_indexing
+except ImportError:
+    try:
+        from src.python.indexer.indexer import process_single_indexing
+    except ImportError:
+        process_single_indexing = None  # type: ignore
+
+try:
+    from benchmark_datalake import benchmark_datalake_lookup as _bm_datalake
+except ImportError:
+    try:
+        from benchmarks.benchmark_datalake import benchmark_datalake_lookup as _bm_datalake
+    except ImportError:
+        _bm_datalake = None  # type: ignore
 
 # ---------------------------------------------------------------------------
 # Declared environment (update if running on a different machine)
@@ -88,7 +124,14 @@ def get_logical_size_bytes(path: Path) -> int:
         return 0
     if path.is_file():
         return path.stat().st_size
-    return sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+    total = 0
+    for root, _, files in os.walk(path):
+        for f in files:
+            try:
+                total += os.path.getsize(os.path.join(root, f))
+            except OSError:
+                pass
+    return total
 
 
 def get_physical_size_bytes(path: Path) -> int:
@@ -98,15 +141,17 @@ def get_physical_size_bytes(path: Path) -> int:
     """
     if not path.exists():
         return 0
+    if path.is_file():
+        st = path.stat()
+        return st.st_blocks * 512 if hasattr(st, "st_blocks") else st.st_size
     total = 0
-    files = [path] if path.is_file() else list(path.rglob("*"))
-    for f in files:
-        if f.is_file():
-            st = f.stat()
-            if hasattr(st, "st_blocks"):
-                total += st.st_blocks * 512
-            else:
-                total += st.st_size
+    for root, _, files in os.walk(path):
+        for f in files:
+            try:
+                st = os.stat(os.path.join(root, f))
+                total += st.st_blocks * 512 if hasattr(st, "st_blocks") else st.st_size
+            except OSError:
+                pass
     return total
 
 
@@ -114,14 +159,12 @@ def count_files_and_dirs(path: Path) -> dict:
     """Count files and directories under *path*."""
     if not path.exists():
         return {"files": 0, "dirs": 0}
-    files = dirs = 0
     if path.is_file():
         return {"files": 1, "dirs": 0}
-    for entry in path.rglob("*"):
-        if entry.is_file():
-            files += 1
-        elif entry.is_dir():
-            dirs += 1
+    files = dirs = 0
+    for root, dirnames, filenames in os.walk(path):
+        dirs += len(dirnames)
+        files += len(filenames)
     return {"files": files, "dirs": dirs}
 
 
@@ -312,7 +355,9 @@ def benchmark_query_latency(warmup: int = 1, reps: int = 5) -> dict:
     print(f"  Terms: {TEST_TERMS}")
     print(f"  warm-up: {warmup} pass(es) | reps: {reps}\n")
 
-    from query_benchmark import query_monolithic, query_hierarchical, query_sqlite
+    if query_monolithic is None or query_hierarchical is None or query_sqlite is None:
+        print("  [SKIP] Query modules not imported – skipped")
+        return {"status": "skipped", "reason": "query modules not found"}
 
     def time_queries(fn, label):
         # warm-up
@@ -379,9 +424,10 @@ def benchmark_query_latency(warmup: int = 1, reps: int = 5) -> dict:
 
 def benchmark_datalake_lookup() -> dict:
     section("4. DATALAKE LOOK-UP COST")
-    sys.path.insert(0, str(BENCHMARKS_DIR))
-    from benchmark_datalake import benchmark_datalake_lookup as _bm
-    return _bm()
+    if _bm_datalake is not None:
+        return _bm_datalake()
+    print("  [SKIP] benchmark_datalake module not found")
+    return {"status": "skipped"}
 
 
 # ---------------------------------------------------------------------------
@@ -471,7 +517,7 @@ def benchmark_idempotency() -> dict:
     ok = (hash1 == hash2)
     print(f"  Run 1 MD5: {hash1}")
     print(f"  Run 2 MD5: {hash2}")
-    print(f"  Idempotent: {'YES ✓' if ok else 'NO ✗  – data duplication detected!'}")
+    print(f"  Idempotent: {'YES [OK]' if ok else 'NO [FAIL]  – data duplication detected!'}")
 
     return {"run1_md5": hash1, "run2_md5": hash2, "idempotent": ok}
 
@@ -489,8 +535,11 @@ def benchmark_incremental_update() -> dict:
         print("  [SKIP] Need at least 2 body files in sample_data/")
         return {"status": "skipped", "reason": "insufficient corpus"}
 
+    if process_single_indexing is None:
+        print("  [SKIP] indexer module not found")
+        return {"status": "skipped", "reason": "indexer module not found"}
+
     # Baseline size before adding the last book
-    from indexer.indexer import process_single_indexing
 
     last_file = body_files[-1]
     book_id = int(last_file.stem.split("_")[0])
@@ -522,7 +571,9 @@ def benchmark_incremental_update() -> dict:
 def benchmark_growth_scaling() -> dict:
     section("9. GROWTH SCALING (corpus size vs indexing time)")
 
-    from indexer.indexer import process_single_indexing
+    if process_single_indexing is None:
+        print("  [SKIP] indexer module not found")
+        return {"status": "skipped", "reason": "indexer module not found"}
 
     body_files = sorted(SAMPLE_DIR.glob("*_body.txt")) if SAMPLE_DIR.exists() else []
     if not body_files:
@@ -562,7 +613,7 @@ def benchmark_parity() -> dict:
     section("10. CROSS-LANGUAGE PARITY VERIFICATION")
     print(f"  Terms under test: {TEST_TERMS}\n")
 
-    from query_benchmark import query_hierarchical
+
 
     def read_hier_postings(folder: Path, term: str) -> set[int]:
         """Read book IDs from a hierarchical posting file."""
@@ -602,7 +653,7 @@ def benchmark_parity() -> dict:
         else:
             diff = f"all agree: {sorted(py_ids)}"
 
-        status = "OK ✓" if ok else "MISMATCH ✗"
+        status = "OK [PASS]" if ok else "MISMATCH [FAIL]"
         print(f"  {term:<16} | {len(py_ids):>8} | {len(java_ids):>8} | {len(c_ids):>8} | {status}")
 
         results[term] = {
@@ -613,7 +664,7 @@ def benchmark_parity() -> dict:
             "details": diff,
         }
 
-    print(f"\n  Overall parity: {'PASS ✓' if all_ok else 'FAIL ✗'}")
+    print(f"\n  Overall parity: {'PASS [OK]' if all_ok else 'FAIL [MISMATCH]'}")
     results["_overall_parity"] = all_ok
     return results
 

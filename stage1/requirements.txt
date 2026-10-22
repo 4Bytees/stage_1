@@ -1,0 +1,13 @@
+# Stage-1 Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Standard-library modules used (no installation needed):
+#   os, sys, re, json, sqlite3, pathlib, abc, time, subprocess, hashlib,
+#   platform, argparse, collections
+
+# Optional – only required for RAM measurement in run_benchmarks.py
+psutil>=5.9.0
+
+# Optional – required only if you want to run the Gutenberg HTTP crawler
+# (not needed for local sample_data experiments)
+requests>=2.31.0

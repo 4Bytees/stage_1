@@ -1,0 +1,25 @@
+{
+  "generator": "numpy.random.default_rng([seed, n, which]).random((n, n))",
+  "seed": 20261012,
+  "dtype": "float64 little-endian, row-major",
+  "value_range": "[0, 1)",
+  "numpy_version": "2.2.6",
+  "files": {
+    "A_10.bin": "098a1fd86f12f85483af0a84c508105db755e7754ba51fe2cfce25672fd0334c",
+    "B_10.bin": "c70ce62fe17229730e8b5e77421b34686c3cecdfe0f2886abfd6a8d71ff8ca1c",
+    "A_100.bin": "f85e42172d0db4bae7a4178014cc7997980ade26a60519017fdce5160bb1d318",
+    "B_100.bin": "d9408ac722f7c384318d09ad154c54c27c5fa1305492a618aeae2e757ed04e14",
+    "A_200.bin": "4a76131c14217918a359ba84660a5f839a5975f8c7cb858f943207d95b0883ac",
+    "B_200.bin": "3aa0eca52dd9610a126ed66ad3f02a38f55cee990b52794775b99016d4a120e7",
+    "A_500.bin": "919f5edd27106bb702f9f10bc0e13b39fbfd77f5d073c39f7c8f2316bdb1a1e2",
+    "B_500.bin": "39ed2a5848e6c6fa30ea4590f3f3e3b9da9437d01132bd5c38bb4914e8b7eac1",
+    "A_1000.bin": "9c9b457f7ae76d747e09935cfe718a980c7b6669421987a34a9f131bc7959760",
+    "B_1000.bin": "d1a53f5bd8a786a2809bc39e96593990b64c3ac2e72c5340ec62e8ace307fc9f",
+    "A_1024.bin": "a1f4d8aa5539f11fb0e34a0d796ec7d0892fbd428f2d2232667063e6484db532",
+    "B_1024.bin": "92c6fcd40e34a8184a0c9e9bd9ce4135b169e2a99e6f7bdb1bd7877ac1c8db49",
+    "A_1500.bin": "6d3a3b5fa721731a4104d080a0ddf36cb0e611d1533e273a350a6cac9ab9a0af",
+    "B_1500.bin": "b366cebd84556497d6c1cdcdd43fe341c28c8d5fbbe7f4ae9c414f581649405b",
+    "A_2000.bin": "598ac84f9c9c3a4eba429086c48c709714c5a655fc443231fdf658201044d69c",
+    "B_2000.bin": "be3d94e19dab7f85a0076045cdb63ebcc41c730d5d312209ef28a1b945bf2605"
+  }
+}

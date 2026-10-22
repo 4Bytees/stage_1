@@ -1,9 +1,0 @@
-data/inputs/*.bin
-c/build/
-java/build/
-__pycache__/
-*.pyc
-venv*/
-.venv/
-.idea/
-.vscode/

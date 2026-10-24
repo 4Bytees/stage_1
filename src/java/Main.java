@@ -25,11 +25,6 @@ public class Main {
             return;
         }
 
-        // Remove TSV from a previous run to avoid duplicates (idempotent re-run).
-        try {
-            Files.deleteIfExists(Paths.get("datamarts/inverted_index_java.tsv"));
-        } catch (Exception ignored) {}
-
         MonolithicIndexer monolithic = new MonolithicIndexer();
         HierarchicalIndexer hierarchical = new HierarchicalIndexer();
         TsvIndexer tsvIndexer = new TsvIndexer();

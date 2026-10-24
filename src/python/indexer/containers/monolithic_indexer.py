@@ -1,33 +1,68 @@
 import json
 from pathlib import Path
-from ..base_container import InvertedIndexDatamartContainer, DATALAKE_DIR, DATAMARTS_DIR
+
+from ..base_container import (
+    InvertedIndexDatamartContainer,
+    DATALAKE_DIR,
+    DATAMARTS_DIR,
+    atomic_write_text,
+)
+
 
 class MonolithicIndexer(InvertedIndexDatamartContainer):
-
-    def __init__(self, datalake_path=DATALAKE_DIR, output_path=DATAMARTS_DIR / "inverted_index.json"):
+    def __init__(
+        self,
+        datalake_path=DATALAKE_DIR,
+        output_path=DATAMARTS_DIR / "inverted_index.json",
+    ):
         super().__init__(datalake_path)
         self.output_path = Path(output_path)
 
-    def save_index_for_book(self, book_id: int, position_dict: dict):
-        self.output_path.parent.mkdir(parents=True, exist_ok=True)
-        existing_index = {}
+    def _load_index(self) -> dict:
+        if not self.output_path.exists():
+            return {}
 
-        if self.output_path.exists():
-            try:
-                with open(self.output_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        existing_index = data
-            except json.JSONDecodeError:
-                existing_index = {}
+        with self.output_path.open("r", encoding="utf-8") as file:
+            index = json.load(file)
 
-        for word, positions in position_dict.items():
-            if word not in existing_index or not isinstance(existing_index[word], dict):
-                existing_index[word] = {}
-            existing_index[word][str(book_id)] = {
+        if not isinstance(index, dict):
+            raise ValueError("El indice JSON debe contener un objeto.")
+
+        for term, postings in index.items():
+            if not isinstance(postings, dict):
+                raise ValueError(
+                    f"Las entradas del termino {term!r} no son un objeto."
+                )
+
+        return index
+
+    def save_index_for_book(
+        self,
+        book_id: int,
+        position_dict: dict[str, list[int]],
+    ):
+        index = self._load_index()
+        book_key = str(book_id)
+
+        # Retirar todas las entradas anteriores del libro.
+        for term in list(index):
+            index[term].pop(book_key, None)
+
+            if not index[term]:
+                del index[term]
+
+        # Incorporar exclusivamente la nueva version del libro.
+        for term, positions in position_dict.items():
+            index.setdefault(term, {})[book_key] = {
                 "frequency": len(positions),
-                "positions": positions
+                "positions": positions,
             }
 
-        with open(self.output_path, "w", encoding="utf-8") as f:
-            json.dump(existing_index, f, indent=2)
+        content = json.dumps(
+            index,
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        )
+
+        atomic_write_text(self.output_path, content + "\n")

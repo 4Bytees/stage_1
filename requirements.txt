@@ -1,13 +1,14 @@
 # Stage-1 Python dependencies
-# Install with: pip install -r requirements.txt
+# Install with: python -m pip install -r requirements.txt
 
-# Standard-library modules used (no installation needed):
-#   os, sys, re, json, sqlite3, pathlib, abc, time, subprocess, hashlib,
-#   platform, argparse, collections
+# HTTP client used by the Gutenberg crawler
+requests>=2.31.0,<3.0.0
 
-# Optional – only required for RAM measurement in run_benchmarks.py
-psutil>=5.9.0
+# Process and memory measurements used by the benchmark runner
+psutil>=5.9.0,<8.0.0
 
-# Optional – required only if you want to run the Gutenberg HTTP crawler
-# (not needed for local sample_data experiments)
-requests>=2.31.0
+# Test runner
+pytest>=8.0.0,<10.0.0
+
+# Required only by src/python/mongo_indexer.py
+pymongo>=4.6.0,<5.0.0

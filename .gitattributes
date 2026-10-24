@@ -1,0 +1,19 @@
+* text=auto
+
+*.py text eol=lf
+*.java text eol=lf
+*.c text eol=lf
+Makefile text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.csv text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.db binary
+*.sqlite binary
+*.exe binary
+*.class binary

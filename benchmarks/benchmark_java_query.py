@@ -1,51 +1,87 @@
-"""
-Wrapper to invoke the Java hierarchical-query benchmark from Python.
-
-This module is kept in benchmarks/ (not in src/java/) because QueryBenchmark
-is a measurement tool, not production indexing code.
-
-The Java benchmark reads the hierarchical posting files produced by the Java
-indexer and reports query latency for a fixed set of test terms.
-"""
-
-import subprocess
 import json
-import time
 from pathlib import Path
+import subprocess
+import time
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-BIN_DIR  = BASE_DIR / "bin"
+BIN_DIR = BASE_DIR / "bin"
 DATAMARTS_DIR = BASE_DIR / "datamarts"
 
-TEST_TERMS = ["gutenberg", "project", "electronic", "foundation",
-              "states", "united", "life", "time"]
+TEST_TERMS = [
+    "gutenberg",
+    "project",
+    "electronic",
+    "foundation",
+    "states",
+    "united",
+    "life",
+    "time",
+]
 
 
-def run_java_query_benchmark() -> dict:
-    """
-    Invoke the compiled Java QueryBenchmark class and parse its output.
+def run_java_query_benchmark(
+    terms=None,
+    datamarts_dir=DATAMARTS_DIR,
+) -> dict:
+    terms = list(TEST_TERMS if terms is None else terms)
 
-    Returns
-    -------
-    dict  {term: {"java_postings_count": int, "java_query_ms": float}}
-    """
-    class_file = BIN_DIR / "QueryBenchmarkRunner.class"
-    if not class_file.exists():
-        print("[Java Query Benchmark] QueryBenchmarkRunner.class not compiled – skipped.")
-        return {}
+    if not terms:
+        raise ValueError("Debes indicar al menos un termino.")
 
-    cmd = ["java", "-cp", str(BIN_DIR), "QueryBenchmarkRunner",
-           str(DATAMARTS_DIR)] + TEST_TERMS
-    t0 = time.perf_counter()
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BASE_DIR))
-    elapsed_ms = (time.perf_counter() - t0) * 1000
+    class_file = BIN_DIR / "QueryBenchmark.class"
 
-    print(result.stdout)
+    if not class_file.is_file():
+        raise FileNotFoundError(
+            "Falta bin/QueryBenchmark.class. Compila primero "
+            "benchmarks/java/QueryBenchmark.java."
+        )
+
+    command = [
+        "java",
+        "-Xmx512m",
+        "-cp",
+        str(BIN_DIR),
+        "QueryBenchmark",
+        str(Path(datamarts_dir).resolve()),
+        *terms,
+    ]
+
+    start = time.perf_counter()
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=BASE_DIR,
+        timeout=120,
+    )
+
+    elapsed_ms = (time.perf_counter() - start) * 1000
+
     if result.returncode != 0:
-        print("[Java Query Benchmark ERROR]", result.stderr)
+        raise RuntimeError(
+            "Fallo del benchmark Java:\n"
+            + result.stderr
+            + result.stdout
+        )
 
-    return {"total_wall_ms": round(elapsed_ms, 2), "raw_output": result.stdout}
+    queries = json.loads(result.stdout)
+
+    if not isinstance(queries, dict):
+        raise ValueError("Java no ha devuelto un objeto JSON.")
+
+    return {
+        "total_wall_ms": elapsed_ms,
+        "queries": queries,
+        "raw_output": result.stdout,
+    }
 
 
 if __name__ == "__main__":
-    print(run_java_query_benchmark())
+    print(json.dumps(
+        run_java_query_benchmark(),
+        indent=2,
+        ensure_ascii=False,
+    ))

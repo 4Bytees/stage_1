@@ -69,6 +69,7 @@ control/failed_to_download_books.txt
 benchmarks/benchmark_results.json
 benchmarks/metrics.csv
 benchmarks/benchmark_comparison.png
+benchmarks/plots/
 
 # Temporary benchmark workspaces
 benchmarks/.tmp/

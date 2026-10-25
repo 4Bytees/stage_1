@@ -5,14 +5,14 @@ def index_to_mongodb(corpus_dir: Path, db_name="search_engine", collection_name=
     try:
         from pymongo import MongoClient
     except ImportError:
-        print("[!] pymongo no instalado. Ejecuta: pip install pymongo")
+        print("[!] pymongo not installed. Run: pip install pymongo")
         return None
 
     client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=2000)
     try:
         client.server_info()
     except Exception:
-        print("[!] Servidor MongoDB no disponible localmente. Se documentará como arquitectura opcional.")
+        print("[!] MongoDB server not available locally. It will be documented as an optional architecture.")
         return None
 
     db = client[db_name]

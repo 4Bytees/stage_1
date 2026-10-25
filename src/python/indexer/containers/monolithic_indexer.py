@@ -26,12 +26,12 @@ class MonolithicIndexer(InvertedIndexDatamartContainer):
             index = json.load(file)
 
         if not isinstance(index, dict):
-            raise ValueError("El indice JSON debe contener un objeto.")
+            raise ValueError("The JSON index must contain an object.")
 
         for term, postings in index.items():
             if not isinstance(postings, dict):
                 raise ValueError(
-                    f"Las entradas del termino {term!r} no son un objeto."
+                    f"Entries for the term{term!r} they are not an object."
                 )
 
         return index
@@ -44,14 +44,12 @@ class MonolithicIndexer(InvertedIndexDatamartContainer):
         index = self._load_index()
         book_key = str(book_id)
 
-        # Retirar todas las entradas anteriores del libro.
         for term in list(index):
             index[term].pop(book_key, None)
 
             if not index[term]:
                 del index[term]
 
-        # Incorporar exclusivamente la nueva version del libro.
         for term, positions in position_dict.items():
             index.setdefault(term, {})[book_key] = {
                 "frequency": len(positions),

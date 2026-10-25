@@ -25,21 +25,6 @@ if str(PYTHON_SRC_DIR) not in sys.path:
 
 
 class ControlLayer:
-    """
-    Orchestrates download → metadata extraction → inverted-index ingestion for
-    each book ID in the configured range.
-
-    Parameters
-    ----------
-    crawler : CrawlerController
-        Must expose ``download_book(book_id: int) -> bool``.
-    metadata_service : module or object
-        Must expose ``process_single_metadata(book_id: int)``.
-    indexer_service : module or object
-        Must expose ``process_single_indexing(book_id: int) -> bool``.
-    control_dir : str | Path
-        Directory that hosts the three state files.
-    """
 
     def __init__(self, crawler, metadata_service, indexer_service,
                  control_dir: str | Path = CONTROL_DIR):
@@ -83,19 +68,6 @@ class ControlLayer:
     # ------------------------------------------------------------------
 
     def process_book(self, book_id: int) -> None:
-        """
-        Run the full pipeline for *book_id* if not already completed.
-
-        Download step:
-            Calls ``self.crawler.download_book(book_id)`` which must return
-            ``True`` on success.  The ID is only written to downloaded_books.txt
-            when the call succeeds; failures are silently skipped (the crawler
-            writes its own failed_to_download_books.txt entry).
-
-        Indexing step:
-            Calls metadata and indexer services.  The ID is only written to
-            indexed_books.txt when *both* calls complete without raising.
-        """
         book_id_str = str(book_id)
 
         # ---- 1. Download phase ----
@@ -139,11 +111,6 @@ class ControlLayer:
     # ------------------------------------------------------------------
 
     def discover_pending_indexing(self) -> list[int]:
-        """
-        Return the list of book IDs that have been downloaded but not yet
-        indexed, in ascending order.  Used by the benchmarking suite to
-        measure discovery latency independently of query latency.
-        """
         downloaded = self._load_ids(self.downloaded_file)
         indexed = self._load_ids(self.indexed_file)
         pending = sorted(int(b) for b in (downloaded - indexed))

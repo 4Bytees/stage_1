@@ -1,16 +1,3 @@
-"""
-Genera graficas a partir de benchmarks/benchmark_results.json.
-
-Salidas:
-- indexing_speed.png
-- storage_footprint.png
-- query_latency.png
-- growth_scaling.png
-- datalake_lookup.png
-
-Las imagenes se guardan localmente en benchmarks/plots/.
-"""
-
 import json
 from pathlib import Path
 
@@ -39,8 +26,8 @@ COLORS = {
 def load_results() -> dict:
     if not RESULTS_FILE.is_file():
         raise FileNotFoundError(
-            "No existe benchmarks/benchmark_results.json. "
-            "Ejecuta primero run_benchmarks.py."
+            "There is no benchmarks/benchmark_results.json. "
+            "Run run_benchmarks.py first."
         )
 
     with RESULTS_FILE.open("r", encoding="utf-8") as file:
@@ -48,7 +35,7 @@ def load_results() -> dict:
 
     if not isinstance(results, dict):
         raise ValueError(
-            "benchmark_results.json debe contener un objeto JSON."
+            "benchmark_results.json must contain a JSON object."
         )
 
     return results
@@ -73,7 +60,7 @@ def save_figure(
     )
     plt.close(figure)
 
-    print(f"[OK] Grafica guardada: {output_path}")
+    print(f"[OK] Graph saved: {output_path}")
     return output_path
 
 
@@ -131,10 +118,10 @@ def plot_indexing_speed(results: dict) -> Path:
     )
 
     axis.set_title(
-        "Tiempo de indexación por lenguaje"
+        "Indexing time by language"
     )
-    axis.set_xlabel("Lenguaje")
-    axis.set_ylabel("Tiempo medio (s)")
+    axis.set_xlabel("Language")
+    axis.set_ylabel("Average time (s)")
     axis.grid(
         axis="y",
         alpha=0.25,
@@ -190,10 +177,10 @@ def plot_storage_footprint(results: dict) -> Path:
     )
 
     axis.set_title(
-        "Tamaño lógico por estructura de índice"
+        "Logical size by index structure"
     )
-    axis.set_xlabel("Estructura")
-    axis.set_ylabel("Tamaño lógico (KiB)")
+    axis.set_xlabel("Structure")
+    axis.set_ylabel("Logical size (KiB)")
     axis.tick_params(
         axis="x",
         rotation=40,
@@ -268,10 +255,10 @@ def plot_query_latency(results: dict) -> Path:
     )
 
     axis.set_title(
-        "Latencia media por consulta"
+        "Average latency per query"
     )
-    axis.set_xlabel("Estructura")
-    axis.set_ylabel("Latencia media (ms)")
+    axis.set_xlabel("Structure")
+    axis.set_ylabel("Average latency (ms)")
     axis.grid(
         axis="y",
         alpha=0.25,
@@ -323,7 +310,7 @@ def plot_growth_scaling(results: dict) -> Path:
         marker="o",
         linewidth=2,
         color=COLORS["Python"],
-        label="Tiempo de indexación",
+        label="Indexing time",
     )
 
     size_line = size_axis.plot(
@@ -332,21 +319,21 @@ def plot_growth_scaling(results: dict) -> Path:
         marker="s",
         linewidth=2,
         color=COLORS["TSV"],
-        label="Tamaño del JSON",
+        label="JSON size",
     )
 
     time_axis.set_title(
-        "Crecimiento del índice Python"
+        "Python index growth"
     )
     time_axis.set_xlabel(
-        "Número de libros"
+        "Books num"
     )
     time_axis.set_ylabel(
         "Tiempo total (s)",
         color=COLORS["Python"],
     )
     size_axis.set_ylabel(
-        "Tamaño del JSON (KiB)",
+        "JSON size (KiB)",
         color=COLORS["TSV"],
     )
 
@@ -378,7 +365,7 @@ def plot_datalake_lookup(results: dict) -> Path:
 
     labels = [
         "Layout temporal",
-        "Layout por ID",
+        "Layout by ID",
     ]
 
     medians = [
@@ -400,10 +387,10 @@ def plot_datalake_lookup(results: dict) -> Path:
     )
 
     axis.set_title(
-        "Coste de búsqueda en el datalake"
+        "Search cost in the data lake"
     )
     axis.set_xlabel("Layout")
-    axis.set_ylabel("Mediana (ms)")
+    axis.set_ylabel("Median (ms)")
     axis.grid(
         axis="y",
         alpha=0.25,
@@ -434,8 +421,8 @@ def main() -> None:
 
     print()
     print(
-        f"[OK] Se han generado "
-        f"{len(generated_files)} graficas."
+        f"[OK] They have been generated"
+        f"{len(generated_files)} graphs."
     )
 
     for path in generated_files:

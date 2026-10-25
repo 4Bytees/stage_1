@@ -49,9 +49,9 @@ def find_body_file(
         if len(matches) > 1:
             details = "\n".join(str(path) for path in matches)
             raise ValueError(
-                f"Hay varias copias del libro {book_id} en {root}:\n"
+                f"There are several copies of the book {book_id} in {root}:\n"
                 f"{details}\n"
-                "Indica body_path o un corpus_dir mas concreto."
+                "Specify body_path or a more specific corpus_dir."
             )
 
         if matches:
@@ -67,12 +67,12 @@ def process_single_indexing(
     corpus_dir: Path | str | None = None,
     output_dir: Path | str = DATAMARTS_DIR,
 ) -> bool:
-    current_stage = "localizacion del texto"
+    current_stage = "text localization"
 
     try:
         if body_path is not None and corpus_dir is not None:
             raise ValueError(
-                "Indica body_path o corpus_dir, pero no ambos."
+                "Specify either body_path or corpus_dir, but not both."
             )
 
         source = (
@@ -82,47 +82,46 @@ def process_single_indexing(
         )
 
         if source is None or not source.is_file():
-            print(f"[INDEXER] No se encuentra el texto del libro {book_id}.")
+            print(f"[INDEXER] The text of the book cannot be found {book_id}.")
             return False
 
-        current_stage = "lectura UTF-8"
+        current_stage = "reading UTF-8"
         text = source.read_text(encoding="utf-8")
 
-        current_stage = "tokenizacion"
+        current_stage = "tokenization"
         position_dict = tokenize(text)
 
         destination = Path(output_dir)
 
-        # Crear y guardar cada contenedor dentro del bloque de errores.
-        current_stage = "indice monolitico"
+        current_stage = "monolithic index"
         MonolithicIndexer(
             output_path=destination / "inverted_index.json",
         ).save_index_for_book(book_id, position_dict)
 
-        current_stage = "indice jerarquico"
+        current_stage = "hierarchical index"
         HierarchicalFolderStructure(
             output_folder=destination / "inverted_index_folders",
         ).save_index_for_book(book_id, position_dict)
 
-        current_stage = "indice SQLite"
+        current_stage = "index SQLite"
         SqliteIndexer(
             db_path=destination / "inverted_index.db",
         ).save_index_for_book(book_id, position_dict)
 
         print(
-            f"[INDEXER] Libro {book_id} indexado "
-            "en los tres datamarts."
+            f"[INDEXER] Book {book_id} indexed "
+            "in the three datamarts."
         )
         return True
 
     except Exception as error:
         print(
-            f"[INDEXER ERROR] Libro {book_id}; "
+            f"[INDEXER ERROR] Book {book_id}; "
             f"fase: {current_stage}; error: {error}"
         )
         print(
-            "[INDEXER] Puede haber escrituras parciales. "
-            "Corrige el error y repite la indexacion del libro."
+            "[INDEXER] Partial deeds may exist. "
+            "Correct the error and repeat the indexing of the book."
         )
         return False
 
@@ -155,7 +154,7 @@ if __name__ == "__main__":
     target_ids = discover_book_ids(corpus)
 
     if not target_ids:
-        print(f"[INDEXER] No hay textos de libros en {corpus}.")
+        print(f"[INDEXER] There are no book texts in {corpus}.")
         sys.exit(1)
 
     success = True

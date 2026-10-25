@@ -23,12 +23,7 @@ public class MonolithicIndexer extends BaseContainer {
         this.outputPath = outputPath;
     }
 
-    /*
-     * Parser del formato generado por este indexador:
-     * termino -> ID -> {frequency, positions}.
-     *
-     * Rechaza formatos inesperados en lugar de empezar desde cero.
-     */
+
     private static class Parser {
         private final String text;
         private int cursor = 0;
@@ -64,8 +59,8 @@ public class MonolithicIndexer extends BaseContainer {
         private void expect(char expected) {
             if (!take(expected)) {
                 throw new IllegalArgumentException(
-                        "JSON invalido en posicion " + cursor
-                                + ": se esperaba " + expected
+                        "Invalid JSON at position " + cursor
+                                + ": it was expected " + expected
                 );
             }
         }
@@ -80,7 +75,7 @@ public class MonolithicIndexer extends BaseContainer {
 
                 if (c == '\\' || c < 32) {
                     throw new IllegalArgumentException(
-                            "Cadena no admitida en el indice."
+                            "String not accepted in the index."
                     );
                 }
 
@@ -88,7 +83,7 @@ public class MonolithicIndexer extends BaseContainer {
             }
 
             if (cursor >= text.length()) {
-                throw new IllegalArgumentException("Cadena sin cerrar.");
+                throw new IllegalArgumentException("Unclosed string.");
             }
 
             String value = text.substring(start, cursor);
@@ -108,13 +103,13 @@ public class MonolithicIndexer extends BaseContainer {
 
             if (start == cursor) {
                 throw new IllegalArgumentException(
-                        "Se esperaba un entero no negativo."
+                        "A non-negative integer was expected."
                 );
             }
 
             if (cursor - start > 1 && text.charAt(start) == '0') {
                 throw new IllegalArgumentException(
-                        "Entero JSON con cero inicial."
+                        "JSON integer with a leading zero."
                 );
             }
 
@@ -132,7 +127,7 @@ public class MonolithicIndexer extends BaseContainer {
                     if (!result.isEmpty()
                             && position <= result.get(result.size() - 1)) {
                         throw new IllegalArgumentException(
-                                "Posiciones no crecientes."
+                                "Non-increasing positions."
                         );
                     }
 
@@ -161,7 +156,7 @@ public class MonolithicIndexer extends BaseContainer {
                     positions = positions();
                 } else {
                     throw new IllegalArgumentException(
-                            "Campo desconocido o duplicado: " + key
+                            "Unknown or duplicate field: " + key
                     );
                 }
             } while (take(','));
@@ -171,7 +166,7 @@ public class MonolithicIndexer extends BaseContainer {
             if (frequency == null || positions == null
                     || frequency != positions.size()) {
                 throw new IllegalArgumentException(
-                        "Frecuencia o posiciones invalidas."
+                        "Invalid frequency or positions."
                 );
             }
 
@@ -191,7 +186,7 @@ public class MonolithicIndexer extends BaseContainer {
                     if (!term.matches("[a-z]{3,}")
                             || index.containsKey(term)) {
                         throw new IllegalArgumentException(
-                                "Termino invalido o duplicado: " + term
+                                "Invalid or duplicate term: " + term
                         );
                     }
 
@@ -206,7 +201,7 @@ public class MonolithicIndexer extends BaseContainer {
 
                             if (!rawId.matches("0|[1-9][0-9]*")) {
                                 throw new IllegalArgumentException(
-                                        "ID invalido: " + rawId
+                                        "ID invalid: " + rawId
                                 );
                             }
 
@@ -215,7 +210,7 @@ public class MonolithicIndexer extends BaseContainer {
 
                             if (books.containsKey(bookId)) {
                                 throw new IllegalArgumentException(
-                                        "Libro duplicado: " + bookId
+                                        "Duplicate book: " + bookId
                                 );
                             }
 
@@ -235,7 +230,7 @@ public class MonolithicIndexer extends BaseContainer {
 
             if (cursor != text.length()) {
                 throw new IllegalArgumentException(
-                        "Contenido adicional al final del JSON."
+                        "Additional content at the end of the JSON."
                 );
             }
 
@@ -291,7 +286,6 @@ public class MonolithicIndexer extends BaseContainer {
                         )).parse()
                         : new TreeMap<>();
 
-        // Retirar toda la version anterior del libro.
         for (Map<Integer, List<Integer>> books : index.values()) {
             books.remove(bookId);
         }
@@ -302,7 +296,7 @@ public class MonolithicIndexer extends BaseContainer {
                 : positionDict.entrySet()) {
             if (!entry.getKey().matches("[a-z]{3,}")) {
                 throw new IllegalArgumentException(
-                        "Termino invalido: " + entry.getKey()
+                        "Invalid term: " + entry.getKey()
                 );
             }
 
@@ -311,7 +305,7 @@ public class MonolithicIndexer extends BaseContainer {
             for (Integer position : entry.getValue()) {
                 if (position == null || position <= previous) {
                     throw new IllegalArgumentException(
-                            "Posiciones invalidas."
+                            "Invalid positions."
                     );
                 }
 

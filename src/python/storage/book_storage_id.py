@@ -7,7 +7,6 @@ class BookStorageId(BookStorage):
     def __init__(self, datalake_path):
         root = Path(datalake_path)
 
-        # Acepta tanto datalake/ como datalake/id/
         if root.name.lower() != "id":
             root = root / "id"
 
@@ -42,7 +41,7 @@ class BookStorageId(BookStorage):
         book_id = int(book_id)
 
         if book_id < 0:
-            raise ValueError("El ID del libro no puede ser negativo.")
+            raise ValueError("The book ID cannot be negative.")
 
         book_id_str = f"{book_id:04d}"
 

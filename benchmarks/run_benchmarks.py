@@ -46,10 +46,10 @@ import tempfile
 
 def validate_arguments(warmup: int, reps: int) -> None:
     if warmup < 0:
-        raise ValueError("--warmup no puede ser negativo.")
+        raise ValueError("--warmup cannot be negative.")
 
     if reps < 1:
-        raise ValueError("--reps debe ser al menos 1.")
+        raise ValueError("--reps must be at least 1.")
 
 
 def validate_corpus() -> list[Path]:
@@ -65,8 +65,8 @@ def validate_corpus() -> list[Path]:
 
     if book_ids != EXPECTED_BOOK_IDS:
         raise RuntimeError(
-            "El corpus debe contener exactamente los libros "
-            f"{EXPECTED_BOOK_IDS}; encontrados: {book_ids}"
+            "The corpus must contain exactly the books."
+            f"{EXPECTED_BOOK_IDS}; founded: {book_ids}"
         )
 
     empty_files = [
@@ -77,7 +77,7 @@ def validate_corpus() -> list[Path]:
 
     if empty_files:
         raise RuntimeError(
-            "El corpus contiene archivos vacios: "
+            "The corpus contains empty files: "
             + ", ".join(empty_files)
         )
 
@@ -110,7 +110,7 @@ def run_checked(
 
     if result.returncode != 0:
         raise RuntimeError(
-            f"{label} ha fallado con codigo "
+            f"{label} failed with code "
             f"{result.returncode}.\n"
             f"COMANDO: {' '.join(command)}\n"
             f"STDOUT:\n{result.stdout}\n"
@@ -126,7 +126,7 @@ def validate_json_index(
 ) -> dict:
     if not index_path.is_file():
         raise FileNotFoundError(
-            f"No se ha generado el indice: {index_path}"
+            f"The index has not been generated: {index_path}"
         )
 
     with index_path.open("r", encoding="utf-8") as file:
@@ -134,7 +134,7 @@ def validate_json_index(
 
     if not isinstance(index, dict):
         raise ValueError(
-            f"El indice {index_path} no contiene un objeto JSON."
+            f"The index {index_path} does not contain a JSON object."
         )
 
     books = set()
@@ -142,11 +142,11 @@ def validate_json_index(
 
     for term, postings in index.items():
         if not isinstance(term, str):
-            raise ValueError("Termino no textual.")
+            raise ValueError("Non-textual term.")
 
         if not isinstance(postings, dict):
             raise ValueError(
-                f"Postings invalidos para {term!r}."
+                f"Invalid postings for {term!r}."
             )
 
         for raw_book_id, posting in postings.items():
@@ -156,7 +156,7 @@ def validate_json_index(
 
             if not isinstance(posting, dict):
                 raise ValueError(
-                    f"Posting invalido para {term!r}, libro {book_id}."
+                    f"Invalid postings for {term!r}, book {book_id}."
                 )
 
             frequency = posting.get("frequency")
@@ -164,14 +164,14 @@ def validate_json_index(
 
             if not isinstance(positions, list):
                 raise ValueError(
-                    f"Posiciones invalidas para {term!r}, "
-                    f"libro {book_id}."
+                    f"Invalid position for {term!r}, "
+                    f"book {book_id}."
                 )
 
             if frequency != len(positions):
                 raise ValueError(
-                    f"Frecuencia incorrecta para {term!r}, "
-                    f"libro {book_id}."
+                    f"Invalid frecuency for {term!r}, "
+                    f"book {book_id}."
                 )
 
             if any(
@@ -179,8 +179,8 @@ def validate_json_index(
                 for position in positions
             ):
                 raise ValueError(
-                    f"Posiciones invalidas para {term!r}, "
-                    f"libro {book_id}."
+                    f"Invalid position for {term!r}, "
+                    f"book {book_id}."
                 )
 
             if any(
@@ -191,8 +191,8 @@ def validate_json_index(
                 )
             ):
                 raise ValueError(
-                    f"Posiciones no crecientes para {term!r}, "
-                    f"libro {book_id}."
+                    f"Non-increasing positions for {term!r}, "
+                    f"book {book_id}."
                 )
 
     found_books = sorted(books)
@@ -202,8 +202,8 @@ def validate_json_index(
         and found_books != expected_book_ids
     ):
         raise ValueError(
-            f"Libros incorrectos en {index_path}: "
-            f"{found_books}; esperados: {expected_book_ids}"
+            f"Incorrect books in {index_path}: "
+            f"{found_books}; expected: {expected_book_ids}"
         )
 
     return {
@@ -248,7 +248,7 @@ def measure_command(
         run_checked(
             command,
             cwd=cwd,
-            label=f"{label} repeticion {repetition + 1}",
+            label=f"{label} repetition {repetition + 1}",
         )
 
         elapsed_ms = (
@@ -313,12 +313,10 @@ C_BINARY = BIN_DIR / (
 
 EXPECTED_BOOK_IDS = [1, 2, 3, 4, 5, 6]
 
-# Add project directories to sys.path so modules can be imported
 for _p in [SRC_PY_DIR, BENCHMARKS_DIR, BASE_DIR]:
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-# Safe top-level imports for benchmark modules
 try:
     from query_benchmark import create_stores
 except ImportError:
@@ -678,12 +676,12 @@ def benchmark_indexing_speed(
 
     if not JAVA_MAIN_CLASS.is_file():
         raise FileNotFoundError(
-            f"Falta {JAVA_MAIN_CLASS}. Compila Java primero."
+            f"Missing {JAVA_MAIN_CLASS}. Compile the Java code first."
         )
 
     if not C_BINARY.is_file():
         raise FileNotFoundError(
-            f"Falta {C_BINARY}. Compila C primero."
+            f"Missing {C_BINARY}. Compile the C code first."
         )
 
     results = {
@@ -752,8 +750,8 @@ def benchmark_storage_footprint() -> dict:
 
     if missing:
         raise FileNotFoundError(
-            "Primero debes ejecutar benchmark_indexing_speed(). "
-            "Faltan estas salidas:\n"
+            "First, you must execute benchmark_indexing_speed(). "
+            "These outputs are missing:\n"
             + "\n".join(missing)
         )
 
@@ -789,11 +787,11 @@ def benchmark_storage_footprint() -> dict:
     results = {}
 
     print(
-        f"  {'Estructura':<30} | "
-        f"{'Logico KiB':>12} | "
-        f"{'Fisico KiB':>12} | "
-        f"{'Archivos':>8} | "
-        f"{'Directorios':>11}"
+        f"  {'Structure':<30} | "
+        f"{'Logical KiB':>12} | "
+        f"{'physical KiB':>12} | "
+        f"{'Files':>8} | "
+        f"{'Directories':>11}"
     )
     print("  " + "-" * 84)
 
@@ -838,7 +836,7 @@ def benchmark_query_latency(
 
     if create_stores is None:
         raise RuntimeError(
-            "No se ha podido importar create_stores desde "
+            "Unable to import create_stores from "
             "query_benchmark.py."
         )
 
@@ -875,7 +873,7 @@ def benchmark_query_latency(
 
     if missing:
         raise FileNotFoundError(
-            "Faltan salidas del experimento de indexacion:\n"
+            "Indexing experiment outputs are missing:\n"
             + "\n".join(missing)
         )
 
@@ -886,20 +884,18 @@ def benchmark_query_latency(
         for term in TEST_TERMS
     }
 
-    # Comprobar paridad entre los tres indices Python
-    # antes de empezar a medir.
     for term in TEST_TERMS:
         hierarchical_result = stores["hierarchical"].query(term)
         sqlite_result = stores["sqlite"].query(term)
 
         if hierarchical_result != expected_results[term]:
             raise ValueError(
-                f"El indice jerarquico difiere para {term!r}."
+                f"The hierarchical index differs for {term!r}."
             )
 
         if sqlite_result != expected_results[term]:
             raise ValueError(
-                f"El indice SQLite difiere para {term!r}."
+                f"The SQLite index differs for {term!r}."
             )
 
     def query_tsv(term: str) -> list[dict]:
@@ -916,7 +912,7 @@ def benchmark_query_latency(
 
                 if len(fields) != 4:
                     raise ValueError(
-                        f"TSV invalido en la linea {line_number}."
+                        f"Invalid TSV on the line {line_number}."
                     )
 
                 row_term = fields[0]
@@ -930,7 +926,7 @@ def benchmark_query_latency(
 
                 if frequency != len(positions):
                     raise ValueError(
-                        "Frecuencia incorrecta en el TSV para "
+                        "Incorrect frequency in the TSV for "
                         f"{term!r}, libro {book_id}."
                     )
 
@@ -939,7 +935,7 @@ def benchmark_query_latency(
                     for position in positions
                 ):
                     raise ValueError(
-                        "Posiciones invalidas en el TSV para "
+                        "Invalid positions in the TSV for "
                         f"{term!r}, libro {book_id}."
                     )
 
@@ -951,7 +947,7 @@ def benchmark_query_latency(
                     )
                 ):
                     raise ValueError(
-                        "Posiciones no crecientes en el TSV para "
+                        "Non-increasing positions in the TSV for "
                         f"{term!r}, libro {book_id}."
                     )
 
@@ -967,8 +963,6 @@ def benchmark_query_latency(
 
         return postings
 
-    # Comprobar que el TSV de C devuelve exactamente
-    # los mismos postings antes de medirlo.
     for term in TEST_TERMS:
         tsv_result = query_tsv(term)
 
@@ -997,34 +991,33 @@ def benchmark_query_latency(
         "repetitions": reps,
         "methodology": {
             "monolithic": (
-                "JSON cargado antes de la medicion; "
-                "se mide solo la consulta al diccionario."
+                "JSON loaded before measurement; "
+                "Only dictionary lookups are measured."
             ),
             "hierarchical": (
-                "Apertura y lectura directa del archivo del termino."
+                "Opening and direct reading of the term file."
             ),
             "sqlite": (
-                "Apertura de conexion de solo lectura, consulta, "
-                "parseo y cierre."
+                "Opening a read-only connection, query, "
+                "parsing and closing."
             ),
             "tsv": (
-                "Escaneo secuencial completo para un unico termino "
-                "por consulta."
+                "Full sequential scan for a single term "
+                "per consultation."
             ),
         },
         "structures": {},
     }
 
     for label, query_function in query_functions.items():
-        # Calentamiento.
         for _ in range(warmup):
             for term in TEST_TERMS:
                 warmup_result = query_function(term)
 
                 if warmup_result != expected_results[term]:
                     raise ValueError(
-                        "Resultado incorrecto durante el calentamiento "
-                        f"para {term!r} en {label}."
+                        "Incorrect result during warm-up "
+                        f"for {term!r} in {label}."
                     )
 
         batch_samples = []
@@ -1043,8 +1036,8 @@ def benchmark_query_latency(
 
                 if actual != expected_results[term]:
                     raise ValueError(
-                        f"Resultado incorrecto para {term!r} "
-                        f"en {label}."
+                        f"Incorrect result for {term!r} "
+                        f"in {label}."
                     )
 
                 per_query_samples.append(elapsed_query_ms)
@@ -1126,7 +1119,7 @@ def benchmark_discovery(
 
     if repetitions < 1:
         raise ValueError(
-            "repetitions debe ser al menos 1."
+            "repetitions must be at least 1."
         )
 
     workspace = (
@@ -1178,7 +1171,7 @@ def benchmark_discovery(
 
         if pending != [6]:
             raise ValueError(
-                "Discovery devolvio un resultado inesperado: "
+                "Discovery returned an unexpected result: "
                 f"{pending}"
             )
 
@@ -1211,24 +1204,24 @@ def benchmark_discovery(
             for sample in samples
         ],
         "methodology": (
-            "Se usan archivos de control temporales: "
-            "los libros 1-6 figuran como descargados y "
-            "los libros 1-5 como indexados. "
-            "El libro pendiente esperado es el 6."
+            "Temporary control files are used: "
+            "Books 1-6 are listed as downloaded and "
+            "books 1–5 as indexed. "
+            "The long-awaited upcoming book is the 6th one."
         ),
     }
 
     print(
-        f"  Descargados: {result['downloaded_ids']}"
+        f"  Downloaded: {result['downloaded_ids']}"
     )
     print(
-        f"  Indexados:   {result['indexed_ids']}"
+        f"  Indexed:   {result['indexed_ids']}"
     )
     print(
-        f"  Pendientes:  {result['pending_ids']}"
+        f"  Pending:  {result['pending_ids']}"
     )
     print(
-        f"  Media:       {result['mean_ms']:.6f} ms"
+        f"  Meean:       {result['mean_ms']:.6f} ms"
     )
 
     return result
@@ -1268,7 +1261,7 @@ def benchmark_storage_state() -> dict:
 def load_json_index(path: Path) -> dict:
     if not path.is_file():
         raise FileNotFoundError(
-            f"No existe el indice JSON: {path}"
+            f"The JSON index does not exist: {path}"
         )
 
     with path.open("r", encoding="utf-8") as file:
@@ -1276,7 +1269,7 @@ def load_json_index(path: Path) -> dict:
 
     if not isinstance(index, dict):
         raise ValueError(
-            f"El indice no contiene un objeto JSON: {path}"
+            f"The index does not contain a JSON object: {path}"
         )
 
     return index
@@ -1293,7 +1286,7 @@ def copy_corpus(
 
         if not source.is_file():
             raise FileNotFoundError(
-                f"Falta el libro del corpus: {source}"
+                f"The book from the corpus is missing: {source}"
             )
 
         shutil.copy2(
@@ -1319,7 +1312,7 @@ def build_python_index(
 
         if not ok:
             raise RuntimeError(
-                f"Python no pudo indexar el libro {book_id}."
+                f"Python was unable to index the book {book_id}"
             )
 
 
@@ -1356,8 +1349,8 @@ def benchmark_idempotency() -> dict:
 
         if not ok:
             raise RuntimeError(
-                "Python fallo durante la segunda indexacion "
-                f"del libro {book_id}."
+                "Python failed during the second indexing"
+                f"from the book {book_id}."
             )
 
     python_second = load_json_index(
@@ -1390,7 +1383,7 @@ def benchmark_idempotency() -> dict:
     run_checked(
         java_command,
         cwd=java_root,
-        label="Java primera ejecucion de idempotencia",
+        label="Java first execution of idempotency",
     )
 
     java_path = (
@@ -1404,7 +1397,7 @@ def benchmark_idempotency() -> dict:
     run_checked(
         java_command,
         cwd=java_root,
-        label="Java segunda ejecucion de idempotencia",
+        label="Java second execution for idempotency",
     )
 
     java_second = load_json_index(java_path)
@@ -1430,7 +1423,7 @@ def benchmark_idempotency() -> dict:
     run_checked(
         c_command,
         cwd=c_root,
-        label="C primera ejecucion de idempotencia",
+        label="C first idempotency execution",
     )
 
     c_path = (
@@ -1444,7 +1437,7 @@ def benchmark_idempotency() -> dict:
     run_checked(
         c_command,
         cwd=c_root,
-        label="C segunda ejecucion de idempotencia",
+        label="C second idempotency execution",
     )
 
     c_second = load_json_index(c_path)
@@ -1460,21 +1453,21 @@ def benchmark_idempotency() -> dict:
     results["overall_idempotent"] = overall
 
     print(
-        f"  Python idempotente: {python_ok}"
+        f"  Python idempotent: {python_ok}"
     )
     print(
-        f"  Java idempotente:   {java_ok}"
+        f"  Java idempotent:   {java_ok}"
     )
     print(
-        f"  C idempotente:      {c_ok}"
+        f"  C idempotent:      {c_ok}"
     )
     print(
-        f"  Resultado global:   {overall}"
+        f" Global results:   {overall}"
     )
 
     if not overall:
         raise ValueError(
-            "Al menos un lenguaje no es idempotente."
+            "At least one language is not idempotent."
         )
 
     return results
@@ -1485,7 +1478,7 @@ def benchmark_incremental_update() -> dict:
 
     if process_single_indexing is None:
         raise RuntimeError(
-            "No se ha podido importar process_single_indexing."
+            "Could not import process_single_indexing."
         )
 
     workspace = (
@@ -1495,7 +1488,6 @@ def benchmark_incremental_update() -> dict:
 
     clean_directory(workspace)
 
-    # Construir realmente el estado inicial 1-5.
     for book_id in [1, 2, 3, 4, 5]:
         ok = process_single_indexing(
             book_id,
@@ -1505,8 +1497,8 @@ def benchmark_incremental_update() -> dict:
 
         if not ok:
             raise RuntimeError(
-                f"Fallo construyendo el estado inicial: "
-                f"libro {book_id}."
+                f"Failure while building the initial state: "
+                f"book {book_id}."
             )
 
     before_validation = validate_json_index(
@@ -1532,7 +1524,7 @@ def benchmark_incremental_update() -> dict:
 
     if not update_ok:
         raise RuntimeError(
-            "Fallo al incorporar incrementalmente el libro 6."
+            "Failure when incrementally incorporating book 6."
         )
 
     after_validation = validate_json_index(
@@ -1558,17 +1550,17 @@ def benchmark_incremental_update() -> dict:
 
     print(
         f"  Estado inicial: libros 1-5, "
-        f"{before_validation['term_count']} terminos"
+        f"{before_validation['term_count']} terms"
     )
     print(
-        f"  Libro incorporado: 6"
+        f"  Included book: 6"
     )
     print(
-        f"  Tiempo incremental: {elapsed_ms:.3f} ms"
+        f"  Incremental time: {elapsed_ms:.3f} ms"
     )
     print(
-        f"  Estado final: libros 1-6, "
-        f"{after_validation['term_count']} terminos"
+        f"  Final state: books 1-6, "
+        f"{after_validation['term_count']} terms"
     )
 
     return result
@@ -1579,7 +1571,7 @@ def benchmark_growth_scaling() -> dict:
 
     if process_single_indexing is None:
         raise RuntimeError(
-            "No se ha podido importar process_single_indexing."
+            "Could not import process_single_indexing."
         )
 
     workspace = (
@@ -1611,8 +1603,8 @@ def benchmark_growth_scaling() -> dict:
 
             if not ok:
                 raise RuntimeError(
-                    "Fallo en el experimento de crecimiento "
-                    f"para el libro {book_id}."
+                    "Failure in the growth experiment "
+                    f"for the book {book_id}."
                 )
 
         elapsed_ms = (
@@ -1643,9 +1635,9 @@ def benchmark_growth_scaling() -> dict:
         results[str(corpus_size)] = result
 
         print(
-            f"  {corpus_size} libros | "
+            f"  {corpus_size} books | "
             f"{elapsed_ms:.3f} ms | "
-            f"{validation['term_count']} terminos | "
+            f"{validation['term_count']} terms | "
             f"{json_size / 1024:.3f} KiB"
         )
 
@@ -1653,9 +1645,9 @@ def benchmark_growth_scaling() -> dict:
         "corpus_sizes": corpus_sizes,
         "measurements": results,
         "methodology": (
-            "Cada tamaño se ejecuta sobre un directorio de salida "
-            "nuevo y vacío. No se reutilizan índices de tamaños "
-            "anteriores."
+            "Each size is processed within an output directory. "
+            "new and empty. Size indices are not reused. "
+            "previous."
         ),
     }
 
@@ -1743,32 +1735,32 @@ def benchmark_parity() -> dict:
             mismatched_terms[:20],
         "parity_ok": parity_ok,
         "comparison_scope": (
-            "Vocabulario completo, IDs de libro, frecuencias "
-            "y listas completas de posiciones."
+            "Complete vocabulary, book IDs, frequencies "
+            "and complete lists of positions."
         ),
     }
 
     print(
-        f"  Python: {len(python_index)} terminos"
+        f"  Python: {len(python_index)} terms"
     )
     print(
-        f"  Java:   {len(java_index)} terminos"
+        f"  Java:   {len(java_index)} terms"
     )
     print(
-        f"  C:      {len(c_index)} terminos"
+        f"  C:      {len(c_index)} terms"
     )
     print(
-        f"  Postings diferentes: "
+        f"  Postings different: "
         f"{len(mismatched_terms)}"
     )
     print(
-        f"  Paridad completa: {parity_ok}"
+        f"  Full parity: {parity_ok}"
     )
 
     if not parity_ok:
         raise ValueError(
-            "La paridad completa entre lenguajes ha fallado. "
-            f"Primeras diferencias: {mismatched_terms[:20]}"
+            "Full parity between languages ​​has failed. "
+            f"Initial differences: {mismatched_terms[:20]}"
         )
 
     return result
@@ -1808,8 +1800,8 @@ if __name__ == "__main__":
     all_metrics["storage_state"] = {
         "status": "not_executed",
         "reason": (
-            "El almacenamiento comparable se mide en "
-            "storage_footprint sobre salidas aisladas."
+            "EComparable storage is measured in "
+            "storage_footprint for isolated outputs."
         ),
     }
     all_metrics["idempotency"]       = benchmark_idempotency()

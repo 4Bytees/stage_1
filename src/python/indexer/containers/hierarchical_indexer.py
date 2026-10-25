@@ -25,13 +25,9 @@ class HierarchicalFolderStructure(InvertedIndexDatamartContainer):
         self.output_folder.mkdir(parents=True, exist_ok=True)
 
     def term_path(self, term: str) -> Path:
-        """
-        Mantiene los nombres habituales y codifica los reservados.
 
-        Ejemplo: con -> C/__term_con.txt
-        """
         if not term or any(char not in "abcdefghijklmnopqrstuvwxyz" for char in term):
-            raise ValueError(f"Termino no valido para este contrato: {term!r}")
+            raise ValueError(f"Invalid term for this contract: {term!r}")
 
         filename = (
             f"__term_{term}.txt"
@@ -42,12 +38,7 @@ class HierarchicalFolderStructure(InvertedIndexDatamartContainer):
         return self.output_folder / term[0].upper() / filename
 
     def _read_other_books(self, path: Path, book_id: int) -> list[str]:
-        """
-        Conserva las lineas de otros libros.
-
-        Retira todas las apariciones del libro actual, incluidas
-        las duplicadas que pudiera haber dejado el antiguo append.
-        """
+        
         if not path.exists():
             return []
 
@@ -64,14 +55,14 @@ class HierarchicalFolderStructure(InvertedIndexDatamartContainer):
 
             if len(fields) != 3:
                 raise ValueError(
-                    f"Entrada invalida en {path}, linea {line_number}"
+                    f"Invalid entry in{path}, line {line_number}"
                 )
 
             try:
                 existing_book_id = int(fields[0].strip())
             except ValueError as error:
                 raise ValueError(
-                    f"ID invalido en {path}, linea {line_number}"
+                    f"Invalid ID in {path}, line {line_number}"
                 ) from error
 
             if existing_book_id != book_id:
@@ -84,13 +75,11 @@ class HierarchicalFolderStructure(InvertedIndexDatamartContainer):
         book_id: int,
         position_dict: dict[str, list[int]],
     ):
-        # Validar todos los terminos antes de empezar a escribir.
         new_entries = {
             self.term_path(term): positions
             for term, positions in position_dict.items()
         }
 
-        # Tambien revisar terminos antiguos que ya no aparecen.
         paths = set(self.output_folder.rglob("*.txt"))
         paths.update(new_entries)
 

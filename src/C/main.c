@@ -166,14 +166,10 @@ static void consume_token(
         return;
     }
 
-    /*
-     * No truncar silenciosamente palabras que no caben en TermNode.
-     * Hasta cambiar esa estructura, fallar de forma explicita.
-     */
     if (length >= MAX_WORD_LEN) {
         fprintf(
             stderr,
-            "[C ERROR] Token demasiado largo en el libro %d.\n",
+            "[C ERROR] Token too long in the book %d.\n",
             book_id
         );
         exit(EXIT_FAILURE);
@@ -192,7 +188,7 @@ void tokenize_file(const char *filepath, int book_id) {
     if (file == NULL) {
         fprintf(
             stderr,
-            "[C ERROR] No se puede abrir: %s\n",
+            "[C ERROR] Could not open: %s\n",
             filepath
         );
         exit(EXIT_FAILURE);
@@ -248,7 +244,7 @@ void tokenize_file(const char *filepath, int book_id) {
     if (ferror(file)) {
         fprintf(
                 stderr,
-                "[C ERROR] Error leyendo: %s\n",
+                "[C ERROR] Error reading: %s\n",
                 filepath
         );
         fclose(file);
@@ -274,7 +270,7 @@ void tokenize_file(const char *filepath, int book_id) {
     if (fclose(file) != 0) {
         fprintf(
                 stderr,
-                "[C ERROR] Error cerrando: %s\n",
+                "[C ERROR] Error closing: %s\n",
                 filepath
         );
         exit(EXIT_FAILURE);
@@ -287,10 +283,7 @@ void tokenize_file(const char *filepath, int book_id) {
  * Posting line format (mirrors Python and Java):
  *   <book_id>,<frequency>,[<p1>, <p2>, ...]
  * --------------------------------------------------------------------- */
-/* Exporta el indice completo construido en memoria.
- * Cada archivo de termino se escribe una sola vez.
- * Devuelve 0 si todo va bien y -1 si falla alguna escritura.
- */
+
 
  static int is_windows_reserved_name(const char *term) {
     static const char *reserved[] = {
@@ -312,13 +305,7 @@ void tokenize_file(const char *filepath, int book_id) {
 }
 
 static int replace_file(const char *temporary_path, const char *target_path) {
-    /*
-     * En Windows, rename() normalmente no sustituye un archivo existente.
-     * Se elimina primero el destino.
-     *
-     * Esto no ofrece atomicidad completa en Windows, pero evita dejar
-     * un archivo parcialmente escrito si falla la generación temporal.
-     */
+
     if (remove(target_path) != 0 && errno != ENOENT) {
         perror(target_path);
         remove(temporary_path);
@@ -368,7 +355,7 @@ int save_tsv_and_folders(void) {
             const char *term = term_node->term;
 
             if (term == NULL || term[0] == '\0') {
-                fprintf(stderr, "[C ERROR] Termino vacio.\n");
+                fprintf(stderr, "[C ERROR] Null term:\n");
                 failed = 1;
                 continue;
             }
@@ -392,7 +379,7 @@ int save_tsv_and_folders(void) {
             ) {
                 fprintf(
                     stderr,
-                    "[C ERROR] Ruta de carpeta demasiado larga: %s\n",
+                    "[C ERROR] Folder path too long: %s\n",
                     term
                 );
                 failed = 1;
@@ -405,12 +392,7 @@ int save_tsv_and_folders(void) {
                 continue;
             }
 
-            /*
-             * Mismo convenio que Python y Java:
-             *
-             * normal    -> apple.txt
-             * reservado -> __term_con.txt
-             */
+           
             written = snprintf(
                 filename,
                 sizeof(filename),
@@ -426,7 +408,7 @@ int save_tsv_and_folders(void) {
             ) {
                 fprintf(
                     stderr,
-                    "[C ERROR] Nombre de archivo demasiado largo: %s\n",
+                    "[C ERROR] File name too long: %s\n",
                     term
                 );
                 failed = 1;
@@ -447,7 +429,7 @@ int save_tsv_and_folders(void) {
             ) {
                 fprintf(
                     stderr,
-                    "[C ERROR] Ruta demasiado larga: %s\n",
+                    "[C ERROR] Route too long: %s\n",
                     term
                 );
                 failed = 1;
@@ -467,7 +449,7 @@ int save_tsv_and_folders(void) {
             ) {
                 fprintf(
                     stderr,
-                    "[C ERROR] Ruta temporal demasiado larga: %s\n",
+                    "[C ERROR] Temporary route too long: %s\n",
                     term
                 );
                 failed = 1;
@@ -558,7 +540,7 @@ int save_tsv_and_folders(void) {
             if (ferror(term_file)) {
                 fprintf(
                     stderr,
-                    "[C ERROR] Error escribiendo %s\n",
+                    "[C ERROR] Error writing %s\n",
                     temporary_path
                 );
                 failed = 1;
@@ -593,7 +575,7 @@ int save_tsv_and_folders(void) {
     if (ferror(tsv)) {
         fprintf(
             stderr,
-            "[C ERROR] Error escribiendo %s\n",
+            "[C ERROR] Error writing %s\n",
             tsv_temporary
         );
         failed = 1;
@@ -728,7 +710,7 @@ int save_full_monolithic_json(void) {
     if (ferror(json)) {
         fprintf(
             stderr,
-            "[C ERROR] Error escribiendo %s\n",
+            "[C ERROR] Error writing %s\n",
             temporary_path
         );
         failed = 1;
@@ -809,41 +791,41 @@ int main(int argc, char *argv[]) {
     process_directory(target_dir, &total_processed);
 
     if (total_processed == 0) {
-        fprintf(stderr, "[C ERROR] No se han procesado libros.\n");
+        fprintf(stderr, "[C ERROR] No books have been processed.\n");
         return EXIT_FAILURE;
     }
 
     printf(
-        "[C] Recorrido terminado. Libros procesados: %d.\n",
+        "[C] Process complete. Books processed: %d.\n",
         total_processed
     );
 
-    printf("[C] Exportando TSV y archivos jerarquicos...\n");
+    printf("[C] Exporting TSV and hierarchical files...\n");
     fflush(stdout);
 
     if (save_tsv_and_folders() != 0) {
         fprintf(
             stderr,
-            "[C ERROR] Fallo al exportar TSV o jerarquico.\n"
+            "[C ERROR] Failure when exporting TSV or hierarchical data.\n"
         );
         return EXIT_FAILURE;
     }
 
-    printf("[C] Exportacion TSV y jerarquica terminada.\n");
-    printf("[C] Exportando JSON...\n");
+    printf("[C] TSV and hierarchical export complete.\n");
+    printf("[C] Exporting JSON...\n");
     fflush(stdout);
 
     if (save_full_monolithic_json() != 0) {
         fprintf(
             stderr,
-            "[C ERROR] Fallo al exportar el JSON monolitico.\n"
+            "[C ERROR] Failed to export the monolithic JSON.\n"
         );
         return EXIT_FAILURE;
     }
 
-    printf("[C] Exportacion JSON terminada correctamente.\n");
+    printf("[C] JSON export completed successfully.\n");
     printf(
-        "[C] Finalizado. Total de libros procesados: %d.\n",
+        "[C] Finished. Total books processed: %d.\n",
         total_processed
     );
     fflush(stdout);

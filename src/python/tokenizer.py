@@ -12,14 +12,6 @@ TOKEN_PATTERN = re.compile(r"\b[a-z]{3,}\b")
 
 
 def tokenize_with_positions(text: str, stop_words=None) -> list[tuple[str, int]]:
-    """
-    Contrato provisional, compatible con el pipeline Python original:
-
-    - Convertir a minusculas.
-    - Considerar palabras ASCII de al menos tres caracteres.
-    - Numerar esas palabras desde cero.
-    - Eliminar stop-words sin renumerar las posiciones restantes.
-    """
     excluded = STOP_WORDS if stop_words is None else frozenset(stop_words)
 
     return [
@@ -39,12 +31,6 @@ def tokenize(text: str) -> dict[str, list[int]]:
 
 
 class MultilingualTokenizer:
-    """
-    Interfaz conservada por compatibilidad.
-
-    El nombre no implica soporte Unicode: utiliza el contrato ASCII
-    provisional compartido con el pipeline.
-    """
 
     def __init__(self, stop_words=None):
         self.stop_words = (

@@ -10,7 +10,7 @@ def normalize_term(term: str) -> str:
 
     if re.fullmatch(r"[a-z]{3,}", term) is None:
         raise ValueError(
-            "La consulta debe ser un termino ASCII de al menos tres letras."
+            "The query must be an ASCII term of at least three letters."
         )
 
     return term
@@ -18,22 +18,22 @@ def normalize_term(term: str) -> str:
 
 def validate_posting(book_id, frequency, positions) -> dict:
     if type(book_id) is not int or book_id < 0:
-        raise ValueError("ID de libro invalido.")
+        raise ValueError("Invalid book ID.")
 
     if type(frequency) is not int or frequency < 0:
-        raise ValueError("Frecuencia invalida.")
+        raise ValueError("Invalid frequency.")
 
     if not isinstance(positions, list):
-        raise ValueError("Las posiciones deben ser una lista.")
+        raise ValueError("The positions must be a list.")
 
     if any(type(position) is not int or position < 0 for position in positions):
-        raise ValueError("Las posiciones deben ser enteros no negativos.")
+        raise ValueError("The positions must be non-negative integers.")
 
     if frequency != len(positions):
-        raise ValueError("La frecuencia no coincide con las posiciones.")
+        raise ValueError("The frequency does not match the positions.")
 
     if any(a >= b for a, b in zip(positions, positions[1:])):
-        raise ValueError("Las posiciones deben ser estrictamente crecientes.")
+        raise ValueError("The positions must be strictly increasing.")
 
     return {
         "book_id": book_id,
@@ -46,7 +46,7 @@ def sorted_postings(postings: list[dict]) -> list[dict]:
     book_ids = [posting["book_id"] for posting in postings]
 
     if len(book_ids) != len(set(book_ids)):
-        raise ValueError("Hay entradas duplicadas para un mismo libro.")
+        raise ValueError("There are duplicate entries for the same book.")
 
     return sorted(postings, key=lambda posting: posting["book_id"])
 
@@ -58,11 +58,6 @@ class InvertedIndexStore(ABC):
 
 
 class MonolithicIndexStore(InvertedIndexStore):
-    """
-    Carga el JSON una vez al construir el lector.
-
-    Si el indice cambia, crea una instancia nueva.
-    """
 
     def __init__(self, path: Path | str):
         self.path = Path(path)
@@ -71,20 +66,20 @@ class MonolithicIndexStore(InvertedIndexStore):
             self.index = json.load(file)
 
         if not isinstance(self.index, dict):
-            raise ValueError("El indice JSON debe contener un objeto.")
+            raise ValueError("The JSON index must contain an object.")
 
     def query(self, term: str) -> list[dict]:
         term = normalize_term(term)
         raw = self.index.get(term, {})
 
         if not isinstance(raw, dict):
-            raise ValueError(f"Entradas invalidas para {term!r}.")
+            raise ValueError(f"Invalid tickets for {term!r}.")
 
         postings = []
 
         for book_id, data in raw.items():
             if not isinstance(data, dict):
-                raise ValueError(f"Entrada invalida para el libro {book_id}.")
+                raise ValueError(f"Invalid entry for the book {book_id}.")
 
             postings.append(
                 validate_posting(
@@ -109,7 +104,7 @@ class HierarchicalIndexStore(InvertedIndexStore):
 
         if not self.folder.is_dir():
             raise FileNotFoundError(
-                f"No existe el indice jerarquico: {self.folder}"
+                f"The hierarchical index does not exist: {self.folder}"
             )
 
     def term_path(self, term: str) -> Path:
@@ -151,7 +146,7 @@ class HierarchicalIndexStore(InvertedIndexStore):
 
                 except (ValueError, TypeError) as error:
                     raise ValueError(
-                        f"Entrada invalida en {path}, linea {line_number}: "
+                        f"Invalid entry in {path}, line {line_number}: "
                         f"{error}"
                     ) from error
 
@@ -164,13 +159,12 @@ class SqliteIndexStore(InvertedIndexStore):
 
         if not self.path.is_file():
             raise FileNotFoundError(
-                f"No existe el indice SQLite: {self.path}"
+                f"The SQLite index does not exist: {self.path}"
             )
 
     def query(self, term: str) -> list[dict]:
         term = normalize_term(term)
 
-        # mode=ro evita crear una base vacia por error.
         uri = self.path.resolve().as_uri() + "?mode=ro"
         connection = sqlite3.connect(uri, uri=True)
 

@@ -12,11 +12,6 @@ DATAMARTS_DIR = BASE_DIR / "datamarts"
 
 
 def atomic_write_text(path: Path, content: str) -> None:
-    """
-    Escribe en un temporal del mismo directorio y sustituye el destino.
-
-    La sustitucion afecta a un archivo, no al conjunto de datamarts.
-    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = None

@@ -76,7 +76,6 @@ public class HierarchicalIndexer extends BaseContainer {
                         StandardCopyOption.ATOMIC_MOVE
                 );
             } catch (AtomicMoveNotSupportedException error) {
-                // Alternativa sin garantia de sustitucion atomica.
                 Files.move(
                         temporary,
                         target,
@@ -97,7 +96,6 @@ public class HierarchicalIndexer extends BaseContainer {
 
         Map<Path, List<Integer>> newEntries = new HashMap<>();
 
-        // Validar los terminos antes de modificar archivos.
         for (Map.Entry<String, List<Integer>> entry
                 : positionDict.entrySet()) {
             newEntries.put(
@@ -136,8 +134,8 @@ public class HierarchicalIndexer extends BaseContainer {
 
                     if (fields.length != 3) {
                         throw new IllegalArgumentException(
-                                "Entrada invalida en " + path
-                                        + ", linea " + lineNumber
+                                "Invalid entry in " + path
+                                        + ", line " + lineNumber
                         );
                     }
 
@@ -149,13 +147,12 @@ public class HierarchicalIndexer extends BaseContainer {
                         );
                     } catch (NumberFormatException error) {
                         throw new IllegalArgumentException(
-                                "ID invalido en " + path
-                                        + ", linea " + lineNumber,
+                                "Invalid ID in " + path
+                                        + ", line " + lineNumber,
                                 error
                         );
                     }
 
-                    // Retirar todas las entradas anteriores del libro.
                     if (existingBookId != bookId) {
                         remaining.add(line);
                     }

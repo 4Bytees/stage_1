@@ -43,7 +43,7 @@ public class QueryBenchmark {
 
         if (!term.matches("[a-z]{3,}")) {
             throw new IllegalArgumentException(
-                    "La consulta debe contener al menos tres letras ASCII."
+                    "The query must contain at least three ASCII letters."
             );
         }
 
@@ -51,7 +51,7 @@ public class QueryBenchmark {
 
         if (!Files.isDirectory(folder)) {
             throw new IllegalStateException(
-                    "No existe el indice jerarquico: " + folder
+                    "The hierarchical index does not exist:" + folder
             );
         }
 
@@ -87,7 +87,7 @@ public class QueryBenchmark {
 
                 if (fields.length != 3) {
                     throw new IllegalArgumentException(
-                            "Se esperan ID, frecuencia y posiciones."
+                            "ID, frequency, and positions are expected."
                     );
                 }
 
@@ -98,7 +98,7 @@ public class QueryBenchmark {
                 if (!rawPositions.startsWith("[")
                         || !rawPositions.endsWith("]")) {
                     throw new IllegalArgumentException(
-                            "Lista de posiciones invalida."
+                            "Invalid list of positions."
                     );
                 }
 
@@ -115,7 +115,7 @@ public class QueryBenchmark {
 
                         if (position < 0 || position <= previous) {
                             throw new IllegalArgumentException(
-                                    "Posiciones no crecientes o negativas."
+                                    "Non-increasing or negative positions."
                             );
                         }
 
@@ -126,13 +126,13 @@ public class QueryBenchmark {
 
                 if (bookId < 0 || frequency != positions.size()) {
                     throw new IllegalArgumentException(
-                            "ID o frecuencia invalidos."
+                            "Invalid ID or frequency."
                     );
                 }
 
                 if (!seenBooks.add(bookId)) {
                     throw new IllegalArgumentException(
-                            "Libro duplicado: " + bookId
+                            "Duplicate book:" + bookId
                     );
                 }
 
@@ -142,7 +142,7 @@ public class QueryBenchmark {
 
             } catch (IllegalArgumentException error) {
                 throw new IllegalArgumentException(
-                        target + ", linea " + lineNumber
+                        target + ", line " + lineNumber
                                 + ": " + error.getMessage(),
                         error
                 );
@@ -165,7 +165,7 @@ public class QueryBenchmark {
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
             throw new IllegalArgumentException(
-                    "Uso: QueryBenchmark <datamarts> <termino>..."
+                    "Use: QueryBenchmark <datamarts> <termino>..."
             );
         }
 

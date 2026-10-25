@@ -1,11 +1,4 @@
-"""
-Comparacion reproducible del coste de busqueda en dos layouts:
 
-- time/YYYYMMDD/HH/
-- id/XX/YY/
-
-Los dos layouts contienen exactamente los mismos seis libros.
-"""
 
 import shutil
 import statistics
@@ -31,8 +24,8 @@ def _validate_corpus() -> list[Path]:
 
     if book_ids != EXPECTED_BOOK_IDS:
         raise RuntimeError(
-            "El corpus debe contener exactamente los libros "
-            f"{EXPECTED_BOOK_IDS}; encontrados: {book_ids}"
+            "The corpus must contain exactly the books."
+            f"{EXPECTED_BOOK_IDS}; founded: {book_ids}"
         )
 
     empty_files = [
@@ -43,7 +36,7 @@ def _validate_corpus() -> list[Path]:
 
     if empty_files:
         raise RuntimeError(
-            "El corpus contiene archivos vacios: "
+            "The corpus contains empty files:"
             + ", ".join(empty_files)
         )
 
@@ -150,7 +143,7 @@ def _measure_lookup(
 
         if found_path is None:
             raise FileNotFoundError(
-                "La busqueda no encontro el libro esperado."
+                "The search did not find the expected book."
             )
 
         samples.append(elapsed_ms)
@@ -184,12 +177,12 @@ def benchmark_datalake_lookup(
 ) -> dict:
     if sample_book_id not in EXPECTED_BOOK_IDS:
         raise ValueError(
-            f"El libro debe pertenecer a {EXPECTED_BOOK_IDS}."
+            f"The book must belong to {EXPECTED_BOOK_IDS}."
         )
 
     if repetitions < 1:
         raise ValueError(
-            "repetitions debe ser al menos 1."
+            "repetitions must be at least 1."
         )
 
     workspace = (
@@ -252,10 +245,10 @@ def benchmark_datalake_lookup(
             ),
         },
         "methodology": (
-            "Los dos layouts se construyen en un espacio temporal "
-            "nuevo con los mismos seis libros. El layout temporal "
-            "se busca recursivamente y el layout por ID mediante "
-            "una ruta calculada directamente."
+            "The two layouts are constructed within a new temporal space "
+            "using the same six books. The temporal layout "
+            "is retrieved recursively, while the layout by ID is accessed via "
+            "a directly calculated path."
         ),
     }
 

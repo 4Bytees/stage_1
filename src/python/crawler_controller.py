@@ -1,10 +1,3 @@
-"""
-CrawlerController: HTTP download engine for Project Gutenberg books.
-
-The controller separates HTTP fetching (network I/O) from local disk I/O so
-that each phase can be timed independently.  The public method ``download_book``
-accepts a specific book ID and returns True/False – it is NOT a count-based API.
-"""
 
 from pathlib import Path
 from storage.book_storage_date import BookStorageDate
@@ -13,18 +6,6 @@ from gutenberg_request import GutenbergRequest
 
 
 class CrawlerController:
-    """
-    Parameters
-    ----------
-    datalake_path : str | Path
-        Root directory for raw book storage.
-    logs_path : str | Path
-        Directory for control/audit files (downloaded_books.txt, etc.).
-    total_books : int
-        Upper bound of book IDs to consider when iterating.
-    datalake_structure : {"date", "id"}
-        Storage layout for newly downloaded books.
-    """
 
     def __init__(self, datalake_path, logs_path,
                  total_books: int = 100, datalake_structure: str = "date"):
@@ -63,19 +44,9 @@ class CrawlerController:
     # ------------------------------------------------------------------
 
     def download_book(self, book_id: int) -> bool:
-        """
-        Download a single book identified by *book_id* and persist it to the
-        datalake.  Updates downloaded_books.txt or failed_to_download_books.txt
-        accordingly.
-
-        Returns
-        -------
-        bool
-            True if the book was successfully fetched and saved; False otherwise.
-        """
         if book_id in self._downloaded():
             print(f"[DOWNLOAD] Book {book_id} already downloaded. Skipping.")
-            return True  # idempotent: already present
+            return True 
 
         if book_id in self._failed_to_download():
             print(f"[DOWNLOAD] Book {book_id} previously marked as failed. Skipping.")
@@ -100,11 +71,6 @@ class CrawlerController:
     # ------------------------------------------------------------------
 
     def download_batch(self, books_to_download: int = 1) -> None:
-        """
-        Download up to *books_to_download* books from the pending set
-        ``range(1, total_books+1) - downloaded - failed``.
-        Intended for standalone runs; not used by ControlLayer.
-        """
         not_downloaded = (
             set(range(1, self.total_books + 1))
             - self._downloaded()

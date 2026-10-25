@@ -27,13 +27,13 @@ def run_java_query_benchmark(
     terms = list(TEST_TERMS if terms is None else terms)
 
     if not terms:
-        raise ValueError("Debes indicar al menos un termino.")
+        raise ValueError("You must provide at least one term.")
 
     class_file = BIN_DIR / "QueryBenchmark.class"
 
     if not class_file.is_file():
         raise FileNotFoundError(
-            "Falta bin/QueryBenchmark.class. Compila primero "
+            "Missing bin/QueryBenchmark.class. Compile first "
             "benchmarks/java/QueryBenchmark.java."
         )
 
@@ -62,7 +62,7 @@ def run_java_query_benchmark(
 
     if result.returncode != 0:
         raise RuntimeError(
-            "Fallo del benchmark Java:\n"
+            "Java benchmark failure:\n"
             + result.stderr
             + result.stdout
         )
@@ -70,7 +70,7 @@ def run_java_query_benchmark(
     queries = json.loads(result.stdout)
 
     if not isinstance(queries, dict):
-        raise ValueError("Java no ha devuelto un objeto JSON.")
+        raise ValueError("Java has not returned a JSON object.")
 
     return {
         "total_wall_ms": elapsed_ms,

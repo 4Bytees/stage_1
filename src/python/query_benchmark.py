@@ -29,8 +29,6 @@ def create_stores(datamarts_dir=DATAMARTS_DIR):
     }
 
 
-# Funciones conservadas para llamadas existentes.
-# Cada llamada independiente construye su lector.
 def query_monolithic(term: str, datamarts_dir=DATAMARTS_DIR) -> list[dict]:
     return MonolithicIndexStore(
         Path(datamarts_dir) / "inverted_index.json"
@@ -55,16 +53,7 @@ def run_query_benchmarks(
     repeats: int = 10,
     warmups: int = 2,
 ) -> dict:
-    """
-    Mediana de consultas repetidas tras calentamiento.
 
-    La construccion de los lectores queda fuera del tiempo medido:
-    - JSON: consulta sobre un indice ya cargado en memoria.
-    - Jerarquico: lectura y parseo del archivo de termino.
-    - SQLite: apertura, consulta, parseo y cierre de conexion.
-
-    No es una medicion de disco frio ni de carga inicial.
-    """
     if repeats < 1 or warmups < 0:
         raise ValueError("repeats debe ser >= 1 y warmups >= 0.")
 
@@ -105,12 +94,7 @@ def verify_query_parity(
     terms: list[str],
     datamarts_dir=DATAMARTS_DIR,
 ) -> dict:
-    """
-    Compara IDs, frecuencias y posiciones entre los tres indices Python.
 
-    Solo comprueba los terminos recibidos, no todo el vocabulario.
-    No comprueba paridad entre lenguajes.
-    """
     stores = create_stores(datamarts_dir)
     report = {}
 
@@ -129,9 +113,9 @@ def verify_query_parity(
         report[term] = {
             "parity_ok": ok,
             "details": (
-                "Coinciden IDs, frecuencias y posiciones."
+                "IDs, frequencies, and positions match."
                 if ok
-                else "Difieren las entradas completas; consulta postings."
+                else "The full entries differ; see the postings."
             ),
             "postings": postings,
         }

@@ -60,7 +60,6 @@ class SqliteIndexer(InvertedIndexDatamartContainer):
         connection = sqlite3.connect(self.db_path)
 
         try:
-            # Borrado e insercion forman una unica transaccion.
             with connection:
                 connection.execute(
                     "DELETE FROM inverted_index WHERE book_id = ?",

@@ -39,7 +39,6 @@ class BookStorageDate(BookStorage):
 
         root = Path(self.datalake_path)
 
-        # Acepta tanto datalake/ como datalake/time/
         if root.name.lower() != "time":
             root = root / "time"
 

@@ -32,13 +32,7 @@ public abstract class BaseContainer {
             "they", "this", "to"
     );
 
-    /*
-     * Letras ASCII de longitud >= 3.
-     *
-     * UNICODE_CHARACTER_CLASS hace que los limites de palabra tengan
-     * en cuenta los caracteres Unicode del contexto, aunque el termino
-     * capturado siga limitado a a-z.
-     */
+
     private static final Pattern WORD_PATTERN = Pattern.compile(
             "\\b[a-z]{3,}\\b",
             Pattern.UNICODE_CHARACTER_CLASS
@@ -62,7 +56,6 @@ public abstract class BaseContainer {
                         .add(position);
             }
 
-            // Las stop-words cuentan; las palabras cortas no.
             position++;
         }
 

@@ -1,124 +1,446 @@
+"""
+Genera graficas a partir de benchmarks/benchmark_results.json.
+
+Salidas:
+- indexing_speed.png
+- storage_footprint.png
+- query_latency.png
+- growth_scaling.png
+- datalake_lookup.png
+
+Las imagenes se guardan localmente en benchmarks/plots/.
+"""
+
 import json
-import matplotlib.pyplot as plt
-import numpy as np
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 BENCHMARKS_DIR = BASE_DIR / "benchmarks"
-JSON_FILE = BENCHMARKS_DIR / "benchmark_results.json"
-OUTPUT_IMG = BENCHMARKS_DIR / "benchmark_comparison.png"
+RESULTS_FILE = BENCHMARKS_DIR / "benchmark_results.json"
+PLOTS_DIR = BENCHMARKS_DIR / "plots"
 
-if JSON_FILE.exists():
-    with open(JSON_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
-else:
-    data = {
-        "indexing_duration_ms": {"Python": 42.05, "Java": 164.12, "C": 40.26},
-        "query_latency_ms": {
-            "Monolithic (JSON RAM)": 319.154,
-            "Hierarchical (Files/IO)": 47.916,
-            "SQLite (B-Tree Index)": 1.902
-        },
-        "datalake_lookup_ms": {
-            "partition_time_ms": 0.3777,
-            "partition_id_ms": 0.0277
-        }
+
+COLORS = {
+    "Python": "#3776AB",
+    "Java": "#E76F00",
+    "C": "#5C6BC0",
+    "JSON": "#3776AB",
+    "Hierarchical": "#2CA02C",
+    "SQLite": "#9467BD",
+    "TSV": "#FF7F0E",
+    "Time": "#D62728",
+    "ID": "#2CA02C",
+}
+
+
+def load_results() -> dict:
+    if not RESULTS_FILE.is_file():
+        raise FileNotFoundError(
+            "No existe benchmarks/benchmark_results.json. "
+            "Ejecuta primero run_benchmarks.py."
+        )
+
+    with RESULTS_FILE.open("r", encoding="utf-8") as file:
+        results = json.load(file)
+
+    if not isinstance(results, dict):
+        raise ValueError(
+            "benchmark_results.json debe contener un objeto JSON."
+        )
+
+    return results
+
+
+def save_figure(
+    figure,
+    filename: str,
+) -> Path:
+    PLOTS_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    output_path = PLOTS_DIR / filename
+
+    figure.tight_layout()
+    figure.savefig(
+        output_path,
+        dpi=180,
+        bbox_inches="tight",
+    )
+    plt.close(figure)
+
+    print(f"[OK] Grafica guardada: {output_path}")
+    return output_path
+
+
+def annotate_bars(
+    axis,
+    *,
+    decimals: int = 2,
+    suffix: str = "",
+) -> None:
+    for bar in axis.patches:
+        height = bar.get_height()
+
+        axis.annotate(
+            f"{height:.{decimals}f}{suffix}",
+            (
+                bar.get_x() + bar.get_width() / 2,
+                height,
+            ),
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            xytext=(0, 3),
+            textcoords="offset points",
+        )
+
+
+def plot_indexing_speed(results: dict) -> Path:
+    indexing = results["indexing_speed"]
+
+    languages = ["Python", "Java", "C"]
+    means_seconds = [
+        indexing[language]["mean_ms"] / 1000
+        for language in languages
+    ]
+
+    stddev_seconds = [
+        indexing[language]["stddev_ms"] / 1000
+        for language in languages
+    ]
+
+    figure, axis = plt.subplots(
+        figsize=(8, 5),
+    )
+
+    axis.bar(
+        languages,
+        means_seconds,
+        yerr=stddev_seconds,
+        capsize=6,
+        color=[
+            COLORS["Python"],
+            COLORS["Java"],
+            COLORS["C"],
+        ],
+    )
+
+    axis.set_title(
+        "Tiempo de indexación por lenguaje"
+    )
+    axis.set_xlabel("Lenguaje")
+    axis.set_ylabel("Tiempo medio (s)")
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
+
+    annotate_bars(
+        axis,
+        decimals=2,
+        suffix=" s",
+    )
+
+    return save_figure(
+        figure,
+        "indexing_speed.png",
+    )
+
+
+def plot_storage_footprint(results: dict) -> Path:
+    storage = results["storage_footprint"]
+
+    labels = []
+    logical_kib = []
+    colors = []
+
+    for name, metrics in storage.items():
+        short_name = (
+            name.replace("Python ", "Py ")
+            .replace("Java ", "Java ")
+            .replace("Monolithic ", "JSON ")
+            .replace("Hierarchical", "Hier.")
+        )
+
+        labels.append(short_name)
+        logical_kib.append(metrics["logical_kib"])
+
+        if "JSON" in name:
+            colors.append(COLORS["JSON"])
+        elif "Hierarchical" in name:
+            colors.append(COLORS["Hierarchical"])
+        elif "SQLite" in name:
+            colors.append(COLORS["SQLite"])
+        else:
+            colors.append(COLORS["TSV"])
+
+    figure, axis = plt.subplots(
+        figsize=(12, 6),
+    )
+
+    axis.bar(
+        labels,
+        logical_kib,
+        color=colors,
+    )
+
+    axis.set_title(
+        "Tamaño lógico por estructura de índice"
+    )
+    axis.set_xlabel("Estructura")
+    axis.set_ylabel("Tamaño lógico (KiB)")
+    axis.tick_params(
+        axis="x",
+        rotation=40,
+    )
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
+
+    annotate_bars(
+        axis,
+        decimals=1,
+        suffix=" KiB",
+    )
+
+    return save_figure(
+        figure,
+        "storage_footprint.png",
+    )
+
+
+def plot_query_latency(results: dict) -> Path:
+    structures = (
+        results["query_latency"]["structures"]
+    )
+
+    labels = []
+    means = []
+    colors = []
+
+    label_mapping = {
+        "Python monolithic JSON in memory":
+            "JSON en memoria",
+        "Python hierarchical direct file":
+            "Jerárquico",
+        "Python SQLite":
+            "SQLite",
+        "C TSV sequential scan":
+            "TSV secuencial",
     }
 
-plt.rcParams.update({
-    'font.sans-serif': 'Segoe UI',
-    'font.family': 'sans-serif',
-    'axes.edgecolor': '#cccccc',
-    'axes.linewidth': 0.8
-})
+    color_mapping = {
+        "Python monolithic JSON in memory":
+            COLORS["JSON"],
+        "Python hierarchical direct file":
+            COLORS["Hierarchical"],
+        "Python SQLite":
+            COLORS["SQLite"],
+        "C TSV sequential scan":
+            COLORS["TSV"],
+    }
 
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-fig.suptitle('Stage 1 — Comprehensive Performance and Architecture Comparison', fontsize=16, fontweight='bold', y=0.98)
+    for name, metrics in structures.items():
+        labels.append(
+            label_mapping.get(name, name)
+        )
+        means.append(
+            metrics["per_query_mean_ms"]
+        )
+        colors.append(
+            color_mapping.get(name, "#7F7F7F")
+        )
 
+    figure, axis = plt.subplots(
+        figsize=(9, 5),
+    )
 
+    axis.bar(
+        labels,
+        means,
+        color=colors,
+    )
 
-ax1 = axes[0, 0]
-idx_data = data.get("indexing_duration_ms", {"Python": 42.05, "Java": 164.12, "C": 40.26})
-langs = list(idx_data.keys())
-idx_times = [idx_data[l] for l in langs]
-colors_idx = ['#2ca02c', '#ff7f0e', '#1f77b4']
+    axis.set_title(
+        "Latencia media por consulta"
+    )
+    axis.set_xlabel("Estructura")
+    axis.set_ylabel("Latencia media (ms)")
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
 
-bars1 = ax1.bar(langs, idx_times, color=colors_idx, width=0.5, edgecolor='black', linewidth=0.6)
-ax1.set_title('1. Indexing Duration (ms)', fontsize=12, fontweight='bold', pad=10)
-ax1.set_ylabel('Total Time (milliseconds)')
-ax1.grid(axis='y', linestyle='--', alpha=0.4)
+    annotate_bars(
+        axis,
+        decimals=4,
+        suffix=" ms",
+    )
 
-for bar in bars1:
-    h = bar.get_height()
-    ax1.annotate(f"{h:.2f} ms",
-                 xy=(bar.get_x() + bar.get_width() / 2, h),
-                 xytext=(0, 4), textcoords="offset points",
-                 ha='center', va='bottom', fontsize=10, fontweight='bold')
-
-
-
-ax2 = axes[0, 1]
-q_data = {
-    "SQLite (B-Tree)": 1.902,
-    "Hierarchical (I/O)": 47.916,
-    "Monolithic (JSON)": 319.154
-}
-q_keys = list(q_data.keys())
-q_times = list(q_data.values())
-colors_q = ['#2ca02c', '#1f77b4', '#d62728']
-
-bars2 = ax2.bar(q_keys, q_times, color=colors_q, width=0.5, edgecolor='black', linewidth=0.6)
-ax2.set_yscale('log')
-ax2.set_title('2. Query Latency per Model (ms, log scale)', fontsize=12, fontweight='bold', pad=10)
-ax2.set_ylabel('Response Time (ms)')
-ax2.grid(axis='y', which='both', linestyle='--', alpha=0.3)
-
-for bar, val in zip(bars2, q_times):
-    ax2.annotate(f"{val:.2f} ms",
-                 xy=(bar.get_x() + bar.get_width() / 2, val),
-                 xytext=(0, 4), textcoords="offset points",
-                 ha='center', va='bottom', fontsize=10, fontweight='bold')
-
+    return save_figure(
+        figure,
+        "query_latency.png",
+    )
 
 
-ax3 = axes[1, 0]
-dl_data = data.get("datalake_lookup_ms", {"partition_time_ms": 0.3777, "partition_id_ms": 0.0277})
-dl_names = ['Time Partition\nO(N) Walk', 'ID Partition\nO(1) Direct']
-dl_times = [dl_data.get("partition_time_ms", 0.3777), dl_data.get("partition_id_ms", 0.0277)]
-colors_dl = ['#d62728', '#2ca02c']
+def plot_growth_scaling(results: dict) -> Path:
+    growth = (
+        results["growth_scaling"]["measurements"]
+    )
 
-bars3 = ax3.bar(dl_names, dl_times, color=colors_dl, width=0.45, edgecolor='black', linewidth=0.6)
-ax3.set_title('3. Data Lake Lookup Cost (ms)', fontsize=12, fontweight='bold', pad=10)
-ax3.set_ylabel('Lookup Cost (ms)')
-ax3.grid(axis='y', linestyle='--', alpha=0.4)
+    sizes = sorted(
+        int(size)
+        for size in growth
+    )
 
-for bar in bars3:
-    h = bar.get_height()
-    ax3.annotate(f"{h:.4f} ms",
-                 xy=(bar.get_x() + bar.get_width() / 2, h),
-                 xytext=(0, 4), textcoords="offset points",
-                 ha='center', va='bottom', fontsize=10, fontweight='bold')
+    times_seconds = [
+        growth[str(size)]["total_indexing_ms"]
+        / 1000
+        for size in sizes
+    ]
+
+    json_sizes_kib = [
+        growth[str(size)]["json_size_bytes"]
+        / 1024
+        for size in sizes
+    ]
+
+    figure, time_axis = plt.subplots(
+        figsize=(9, 5),
+    )
+
+    size_axis = time_axis.twinx()
+
+    time_line = time_axis.plot(
+        sizes,
+        times_seconds,
+        marker="o",
+        linewidth=2,
+        color=COLORS["Python"],
+        label="Tiempo de indexación",
+    )
+
+    size_line = size_axis.plot(
+        sizes,
+        json_sizes_kib,
+        marker="s",
+        linewidth=2,
+        color=COLORS["TSV"],
+        label="Tamaño del JSON",
+    )
+
+    time_axis.set_title(
+        "Crecimiento del índice Python"
+    )
+    time_axis.set_xlabel(
+        "Número de libros"
+    )
+    time_axis.set_ylabel(
+        "Tiempo total (s)",
+        color=COLORS["Python"],
+    )
+    size_axis.set_ylabel(
+        "Tamaño del JSON (KiB)",
+        color=COLORS["TSV"],
+    )
+
+    time_axis.set_xticks(sizes)
+    time_axis.grid(
+        alpha=0.25,
+    )
+
+    lines = time_line + size_line
+    labels = [
+        line.get_label()
+        for line in lines
+    ]
+
+    time_axis.legend(
+        lines,
+        labels,
+        loc="upper left",
+    )
+
+    return save_figure(
+        figure,
+        "growth_scaling.png",
+    )
 
 
-ax4 = axes[1, 1]
-mem_data = {"Python": 29.07, "C": 94.40, "Java": 979.81}
-mem_langs = list(mem_data.keys())
-mem_values = list(mem_data.values())
-colors_mem = ['#2ca02c', '#1f77b4', '#d62728']
+def plot_datalake_lookup(results: dict) -> Path:
+    datalake = results["datalake_lookup"]
 
-bars4 = ax4.bar(mem_langs, mem_values, color=colors_mem, width=0.5, edgecolor='black', linewidth=0.6)
-ax4.set_title('4. Maximum RAM Memory Usage (MB)', fontsize=12, fontweight='bold', pad=10)
-ax4.set_ylabel('Allocated RAM (MB)')
-ax4.grid(axis='y', linestyle='--', alpha=0.4)
+    labels = [
+        "Layout temporal",
+        "Layout por ID",
+    ]
 
-for bar in bars4:
-    h = bar.get_height()
-    ax4.annotate(f"{h:.1f} MB",
-                 xy=(bar.get_x() + bar.get_width() / 2, h),
-                 xytext=(0, 4), textcoords="offset points",
-                 ha='center', va='bottom', fontsize=10, fontweight='bold')
+    medians = [
+        datalake["time_layout"]["median_ms"],
+        datalake["id_layout"]["median_ms"],
+    ]
 
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.savefig(OUTPUT_IMG, dpi=300)
-plt.close()
-print(f"[SUCCESS] Plot successfully generated at: {OUTPUT_IMG}")
+    figure, axis = plt.subplots(
+        figsize=(7, 5),
+    )
+
+    axis.bar(
+        labels,
+        medians,
+        color=[
+            COLORS["Time"],
+            COLORS["ID"],
+        ],
+    )
+
+    axis.set_title(
+        "Coste de búsqueda en el datalake"
+    )
+    axis.set_xlabel("Layout")
+    axis.set_ylabel("Mediana (ms)")
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
+
+    annotate_bars(
+        axis,
+        decimals=4,
+        suffix=" ms",
+    )
+
+    return save_figure(
+        figure,
+        "datalake_lookup.png",
+    )
+
+
+def main() -> None:
+    results = load_results()
+
+    generated_files = [
+        plot_indexing_speed(results),
+        plot_storage_footprint(results),
+        plot_query_latency(results),
+        plot_growth_scaling(results),
+        plot_datalake_lookup(results),
+    ]
+
+    print()
+    print(
+        f"[OK] Se han generado "
+        f"{len(generated_files)} graficas."
+    )
+
+    for path in generated_files:
+        print(f"  - {path}")
+
+
+if __name__ == "__main__":
+    main()

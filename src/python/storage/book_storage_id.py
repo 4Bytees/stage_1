@@ -1,8 +1,17 @@
+from pathlib import Path
+
 from storage.book_storage import BookStorage
+
 
 class BookStorageId(BookStorage):
     def __init__(self, datalake_path):
-        super().__init__(datalake_path)
+        root = Path(datalake_path)
+
+        # Acepta tanto datalake/ como datalake/id/
+        if root.name.lower() != "id":
+            root = root / "id"
+
+        super().__init__(root)
 
     def save(self, book_id, content):
         book_id = int(book_id)
@@ -12,24 +21,43 @@ class BookStorageId(BookStorage):
             return False
 
         header_content, body_content = content_separated
+
         path = self.get_book_path(book_id)
         header_path = path / f"{book_id}_header.txt"
         body_path = path / f"{book_id}_body.txt"
-        
-        with open(header_path, "w", encoding="utf-8") as file:
-            file.write(header_content.strip())
-        with open(body_path, "w", encoding="utf-8") as file:
-            file.write(body_content.strip())
-            
+
+        header_path.write_text(
+            header_content.strip(),
+            encoding="utf-8",
+        )
+
+        body_path.write_text(
+            body_content.strip(),
+            encoding="utf-8",
+        )
+
         return str(header_path), str(body_path)
 
     def get_book_path(self, book_id):
+        book_id = int(book_id)
+
+        if book_id < 0:
+            raise ValueError("El ID del libro no puede ser negativo.")
+
         book_id_str = f"{book_id:04d}"
+
         if len(book_id_str) % 2 != 0:
-            book_id_str = f"0{book_id_str}"
-        parts = [book_id_str[i:i + 2] for i in range(0, len(book_id_str), 2)]
-        path = self.datalake_path
+            book_id_str = "0" + book_id_str
+
+        parts = [
+            book_id_str[index:index + 2]
+            for index in range(0, len(book_id_str), 2)
+        ]
+
+        path = Path(self.datalake_path)
+
         for part in parts:
             path = path / part
+
         path.mkdir(parents=True, exist_ok=True)
         return path

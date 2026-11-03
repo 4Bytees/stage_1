@@ -1,9 +1,12 @@
 from datetime import datetime, timezone
+from pathlib import Path
+
 from storage.book_storage import BookStorage
+
 
 class BookStorageDate(BookStorage):
     def __init__(self, datalake_path):
-        super().__init__(datalake_path)
+        super().__init__(Path(datalake_path))
 
     def save(self, book_id, content):
         content_separated = super().separate_header(content)
@@ -17,18 +20,30 @@ class BookStorageDate(BookStorage):
         header_path = path / f"{book_id}_header.txt"
         body_path = path / f"{book_id}_body.txt"
 
-        with open(header_path, "w", encoding="utf-8") as file:
-            file.write(header_content.strip())
-        with open(body_path, "w", encoding="utf-8") as file:
-            file.write(body_content.strip())
-            
+        header_path.write_text(
+            header_content.strip(),
+            encoding="utf-8",
+        )
+        body_path.write_text(
+            body_content.strip(),
+            encoding="utf-8",
+        )
+
         return str(header_path), str(body_path)
 
     def get_book_path(self):
-        current_path = datetime.now(timezone.utc).strftime('%Y%m%d')
-        current_time = datetime.now(timezone.utc).strftime('%H')
+        now = datetime.now(timezone.utc)
 
-        time_dir = self.datalake_path / "time" / current_path / current_time
+        current_date = now.strftime("%Y%m%d")
+        current_hour = now.strftime("%H")
 
+        root = Path(self.datalake_path)
+
+        # Acepta tanto datalake/ como datalake/time/
+        if root.name.lower() != "time":
+            root = root / "time"
+
+        time_dir = root / current_date / current_hour
         time_dir.mkdir(parents=True, exist_ok=True)
+
         return time_dir

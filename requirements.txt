@@ -1,0 +1,14 @@
+# Stage-1 Python dependencies
+# Install with: python -m pip install -r requirements.txt
+
+# HTTP client used by the Gutenberg crawler
+requests>=2.31.0,<3.0.0
+
+# Process and memory measurements used by the benchmark runner
+psutil>=5.9.0,<8.0.0
+
+# Test runner
+pytest>=8.0.0,<10.0.0
+
+# Required only by src/python/mongo_indexer.py
+pymongo>=4.6.0,<5.0.0

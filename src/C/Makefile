@@ -1,13 +1,23 @@
 CC = gcc
-CFLAGS = -O3 -Wall
+CFLAGS = -O3 -std=c11 -Wall -Wextra -Wpedantic
+CPPFLAGS =
+LDFLAGS =
+LDLIBS =
+
 TARGET = ../../bin/indexer_c.exe
 SRC = main.c
 
+.PHONY: all clean rebuild
+
 all: $(TARGET)
 
-$(TARGET): $(SRC)
-	mkdir -p ../../bin
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+$(TARGET): $(SRC) Makefile
+	mkdir -p "$(dir $(TARGET))"
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(SRC) $(LDFLAGS) $(LDLIBS) -o "$(TARGET)"
 
 clean:
-	rm -f $(TARGET)
+	rm -f "$(TARGET)"
+
+rebuild:
+	$(MAKE) clean
+	$(MAKE) all
